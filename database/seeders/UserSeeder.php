@@ -3,38 +3,49 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-         User::create([
-            'name' => 'admin',
-            'email' => 'admin@gmail.com',
-            'status' => 'active',
-            'role' => 'admin',
-            'password' => Hash::make('admin123'),
-        ]);
+        $now = now();
 
-        User::create([
-            'name' => 'dokter',
-            'email' => 'doctor@gmail.com',
-            'status' => 'active',
-            'role' => 'doctor',
-            'password' => Hash::make('dokter123'),
-        ]);
+        DB::table('users')->updateOrInsert(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name' => 'admin',
+                'status' => 'active',
+                'role' => 'admin',
+                'password' => Hash::make('admin123'),
+                'updated_at' => $now,
+                'created_at' => $now,
+            ]
+        );
 
-        User::create([
-            'name' => 'pasien',
-            'email' => 'pasien@gmail.com',
-            'status' => 'active',
-            'role' => 'patient',
-            'password' => Hash::make('pasien123'),
-        ]);
+        DB::table('users')->updateOrInsert(
+            ['email' => 'doctor@gmail.com'],
+            [
+                'name' => 'dokter',
+                'status' => 'active',
+                'role' => 'doctor',
+                'password' => Hash::make('dokter123'),
+                'updated_at' => $now,
+                'created_at' => $now,
+            ]
+        );
+
+        DB::table('users')->updateOrInsert(
+            ['email' => 'pasien@gmail.com'],
+            [
+                'name' => 'pasien',
+                'status' => 'active',
+                'role' => 'patient',
+                'password' => Hash::make('pasien123'),
+                'updated_at' => $now,
+                'created_at' => $now,
+            ]
+        );
     }
-
 }

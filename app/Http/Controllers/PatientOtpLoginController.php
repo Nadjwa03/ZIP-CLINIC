@@ -232,7 +232,7 @@ class PatientOtpLoginController extends Controller
             ? 'Registrasi berhasil! Selamat datang di Klinik ZIP.'
             : 'Login berhasil!';
 
-        return redirect()->route('pasien')->with('success', $message);
+        return redirect()->route('pasien.dashboard')->with('success', $message);
     }
 
     /**

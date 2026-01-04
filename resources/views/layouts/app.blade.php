@@ -20,11 +20,13 @@
 </head>
 <body class="bg-gray-50">
     
-    <!-- Sidebar Component -->
-    @include('components.sidebar')
+    <!-- Sidebar Component (Fixed Position) -->
+    <aside class="fixed top-0 left-0 h-screen w-80 bg-white border-r border-neutral-200 z-40">
+        @include('components.admin-sidebar')
+    </aside>
 
-    <!-- Main Content -->
-    <div class="lg:ml-64">
+    <!-- Main Content (with proper margin) -->
+    <div class="ml-80">
         
         <!-- Navbar Component -->
         @include('components.navbar')
