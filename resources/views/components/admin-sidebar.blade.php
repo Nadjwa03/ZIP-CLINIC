@@ -92,6 +92,15 @@
       <span class="{{ request()->routeIs('admin.inventory.*') ? 'text-emerald-600' : 'text-neutral-700' }} group-hover:text-emerald-600">Inventory</span>
     </a>
 
+    <!-- Master Data Spesialisasi -->
+<a href="{{ route('admin.speciality.index') }}" 
+   class="w-full flex gap-x-2 p-3 group hover:bg-emerald-50 rounded-md {{ request()->routeIs('admin.speciality.*') ? 'bg-emerald-50' : '' }}">
+  <svg xmlns="http://www.w3.org/2000/svg" class="fill-current {{ request()->routeIs('admin.speciality.*') ? 'text-emerald-600' : 'text-neutral-700' }} group-hover:text-emerald-600 w-6 h-6" viewBox="0 -960 960 960">
+    <path d="M320-280q17 0 28.5-11.5T360-320q0-17-11.5-28.5T320-360q-17 0-28.5 11.5T280-320q0 17 11.5 28.5T320-280Zm0-160q17 0 28.5-11.5T360-480q0-17-11.5-28.5T320-520q-17 0-28.5 11.5T280-480q0 17 11.5 28.5T320-440Zm0-160q17 0 28.5-11.5T360-640q0-17-11.5-28.5T320-680q-17 0-28.5 11.5T280-640q0 17 11.5 28.5T320-600Zm120 320h240v-80H440v80Zm0-160h240v-80H440v80Zm0-160h240v-80H440v80ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Z"/>
+  </svg>
+  <span class="{{ request()->routeIs('admin.speciality.*') ? 'text-emerald-600' : 'text-neutral-700' }} group-hover:text-emerald-600">Spesialisasi</span>
+</a>
+
   </nav>
 
   <!-- User Info & Logout (Bottom) -->

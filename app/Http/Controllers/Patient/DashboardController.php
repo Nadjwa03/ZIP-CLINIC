@@ -24,93 +24,40 @@ class DashboardController extends Controller
             ->get();
         
         $selectedPatient = null;
-if ($patients->isNotEmpty()) {
-    $selectedPatientId = $request->session()->get('selected_patient_id');
-    $selectedPatient = $patients->firstWhere('id', $selectedPatientId) ?? $patients->first();
-    
-    // Set in session if not set
-    if (!$selectedPatientId) {
-        $request->session()->put('selected_patient_id', $selectedPatient->id);
-    }
-}
+        if ($patients->isNotEmpty()) {
+            $selectedPatientId = $request->session()->get('selected_patient_id');
+            $selectedPatient = $patients->firstWhere('patient_id', $selectedPatientId) ?? $patients->first();
 
-// Get stats (0 if no patient)
-$stats = [
-    'appointments' => $selectedPatient ? $selectedPatient->appointments()->count() : 0,
-    'visits' => $selectedPatient ? $selectedPatient->visits()->count() : 0,
-    'completed_visits' => $selectedPatient ? $selectedPatient->visits()->where('status', 'COMPLETED')->count() : 0,
-];
-
-// Get upcoming appointments (empty if no patient)
-$upcomingAppointments = $selectedPatient 
-    ? $selectedPatient->appointments()
-        ->with(['service'])
-        ->whereIn('status', ['BOOKED', 'APPROVED'])
-        ->where('appointment_date', '>=', now()->toDateString())
-        ->orderBy('appointment_date')
-        ->orderBy('appointment_time')
-        ->take(5)
-        ->get()
-    : collect();
-
-return view('pasien.index', [
-    'patients' => $patients,
-    'selectedPatient' => $selectedPatient,
-    'stats' => $stats,
-    'upcomingAppointments' => $upcomingAppointments,
-]);
-        
-        // Get selected patient (from session or first patient)
-        $selectedPatientId = $request->session()->get('selected_patient_id');
-        $patient = null;
-        
-        if ($selectedPatientId) {
-            $patient = $patients->firstWhere('id', $selectedPatientId);
+            // Set in session if not set
+            if (!$selectedPatientId) {
+                $request->session()->put('selected_patient_id', $selectedPatient->patient_id);
+            }
         }
-        
-        if (!$patient) {
-            $patient = $patients->first();
-            $request->session()->put('selected_patient_id', $patient->id);
-        }
-        
-        // Get stats
+
+        // Get stats (0 if no patient)
         $stats = [
-            'appointments' => Appointment::where('patient_id', $patient->id)
-                ->whereIn('status', ['BOOKED', 'APPROVED', 'CHECKED_IN'])
-                ->count(),
-            
-            'visits' => Visit::where('patient_id', $patient->id)
-                ->count(),
-            
-            'completed_visits' => Visit::where('patient_id', $patient->id)
-                ->whereHas('appointment', function($query) {
-                    $query->where('status', 'COMPLETED');
-                })
-                ->count(),
+            'appointments' => $selectedPatient ? $selectedPatient->appointments()->count() : 0,
+            'visits' => $selectedPatient ? $selectedPatient->visits()->count() : 0,
+            'completed_visits' => $selectedPatient ? $selectedPatient->visits()->where('status', 'COMPLETED')->count() : 0,
         ];
-        
-        // Upcoming appointments (next 5)
-        $upcomingAppointments = Appointment::with([
-                'preferredDoctor.user',
-                'assignedDoctor.user', 
-                'service',
-                'slot'
-            ])
-            ->where('patient_id', $patient->id)
-            ->whereIn('status', ['BOOKED', 'APPROVED', 'CHECKED_IN'])
-            ->whereHas('slot', function($query) {
-                $query->where('slot_date', '>=', now()->toDateString());
-            })
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-        
-        return view('pasien.index', compact(
-            'patient',
-            'patients',
-            'stats',
-            'upcomingAppointments'
-        ));
+
+        // Get upcoming appointments (empty if no patient)
+        $upcomingAppointments = $selectedPatient
+            ? $selectedPatient->appointments()
+                ->with(['service', 'doctor'])
+                ->whereIn('status', ['BOOKED', 'CHECKED_IN'])
+                ->where('scheduled_start_at', '>=', now())
+                ->orderBy('scheduled_start_at')
+                ->take(5)
+                ->get()
+            : collect();
+
+        return view('pasien.index', [
+            'patients' => $patients,
+            'selectedPatient' => $selectedPatient,
+            'stats' => $stats,
+            'upcomingAppointments' => $upcomingAppointments,
+        ]);
     }
     
     /**
@@ -119,17 +66,17 @@ return view('pasien.index', [
     public function switchPatient(Request $request)
     {
         $request->validate([
-            'patient_id' => 'required|exists:patients,id'
+            'patient_id' => 'required|exists:patients,patient_id'
         ]);
-        
+
         $user = Auth::user();
-        $patient = Patient::where('id', $request->patient_id)
+        $patient = Patient::where('patient_id', $request->patient_id)
             ->where('owner_user_id', $user->id)
             ->firstOrFail();
-        
+
         // Store selected patient in session
-        $request->session()->put('selected_patient_id', $patient->id);
-        
+        $request->session()->put('selected_patient_id', $patient->patient_id);
+
         return response()->json([
             'success' => true,
             'message' => 'Patient switched successfully'

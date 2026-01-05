@@ -10,25 +10,28 @@ return new class extends Migration
     {
         // Drop table dulu jika ada (untuk avoid conflict)
         Schema::dropIfExists('services');
-        
+
         Schema::create('services', function (Blueprint $table) {
             $table->id('service_id');
-            $table->string('code', 40)->unique();
-            $table->string('name', 160);
-            $table->string('category', 50)->nullable();
+            $table->string('code', 50)->nullable()->unique();
+            $table->string('service_name', 200);
+            $table->unsignedBigInteger('speciality_id');
             $table->text('description')->nullable();
-            $table->decimal('price', 12, 2)->default(0);
-            $table->unsignedSmallInteger('duration_minutes')->default(30);
-            $table->string('icon', 10)->nullable();
-            $table->string('image_path')->nullable();
-            $table->integer('display_order')->default(1);
+            $table->decimal('price', 15, 2);
+            $table->integer('duration_minutes');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
-            // Indexes - HANYA SATU KALI
-            $table->index('display_order');
+
+            // Foreign Keys
+            $table->foreign('speciality_id')
+                  ->references('speciality_id')
+                  ->on('specialities')
+                  ->onDelete('restrict');
+
+            // Indexes
+            $table->index('speciality_id');
             $table->index('is_active');
-            $table->index('category'); // Hanya 1x, jangan duplikat!
+            $table->index('service_name');
         });
     }
 

@@ -227,7 +227,7 @@
     </div>
 
     <div id="content-media" class="tab-content hidden">
-        @livewire('admin.patients.media-gallery', ['patientId' => $patient->id])
+        @livewire('admin.patients.media-gallery', ['patientId' => $patient->patient_id])
     </div>
 </div>
 

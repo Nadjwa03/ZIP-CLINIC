@@ -165,11 +165,11 @@ class PatientController extends Controller
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'id_type' => 'required|in:KTP,SIM,PASSPORT,KK',
-            'id_number' => 'required|string|max:50|unique:patients,id_number,' . $patient->id,
+            'id_number' => 'required|string|max:50|unique:patients,id_number,' . $patient->patient_id . ',patient_id',
             'date_of_birth' => 'required|date|before:today',
             'gender' => 'required|in:L,P',
             'blood_type' => 'nullable|in:A,B,AB,O',
-            'email' => 'required|email|unique:patients,email,' . $patient->id,
+            'email' => 'required|email|unique:patients,email,' . $patient->patient_id . ',patient_id',
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
             'emergency_contact_name' => 'nullable|string|max:255',
@@ -247,7 +247,7 @@ class PatientController extends Controller
         
         // Get last patient today
         $lastPatient = Patient::whereDate('created_at', today())
-            ->orderBy('id', 'desc')
+            ->orderBy('patient_id', 'desc')
             ->first();
 
         if ($lastPatient) {

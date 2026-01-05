@@ -38,8 +38,8 @@ class AuthController extends Controller
         // Regenerate session untuk keamanan
         $request->session()->regenerate();
 
-        // Redirect ke dashboard admin/dokter
-        return redirect()->intended(route('dashboard'));
+        // Redirect ke dashboard admin
+        return redirect()->intended(route('admin.index'));
     }
 
     public function register(Request $request)

@@ -140,11 +140,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
         return redirect('/login');
     })->name('logout');
     
-    // Appointments/Reservations
-        Route::get('/appointments', function () {
-            return view('admin.appointments.index');
-        })->name('appointments.index');
-
+    // ========================================
+    // ADMIN APPOINTMENT ROUTES
+    // ========================================
+    // Tambahkan di dalam Route::prefix('admin')->group()
+    Route::prefix('appointments')->name('appointments.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\AppointmentController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\AppointmentController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\AppointmentController::class, 'store'])->name('store');
+        Route::get('/{appointment}', [App\Http\Controllers\Admin\AppointmentController::class, 'show'])->name('show');
+        Route::get('/{appointment}/edit', [App\Http\Controllers\Admin\AppointmentController::class, 'edit'])->name('edit');
+        Route::put('/{appointment}', [App\Http\Controllers\Admin\AppointmentController::class, 'update'])->name('update');
+        Route::patch('/{appointment}/status', [App\Http\Controllers\Admin\AppointmentController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{appointment}/cancel', [App\Http\Controllers\Admin\AppointmentController::class, 'cancel'])->name('cancel');
+        
+        // AJAX Routes
+        Route::get('/available-slots', [App\Http\Controllers\Admin\AppointmentController::class, 'getAvailableSlots'])->name('available-slots');
+    });
         // Check-in
         Route::get('/checkin', function () {
             return view('admin.checkin.index');
@@ -194,12 +206,31 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
         Route::get('/', [SettingController::class, 'index'])->name('index');
         Route::post('/', [SettingController::class, 'update'])->name('update');
     });
+
+    // ========================================
+    // MASTER DATA: SPECIALITY
+    // ========================================
+    Route::prefix('speciality')->name('speciality.')->group(function () {
+        Route::get('/', function () {
+            return view('admin.speciality.index');
+        })->name('index');
+        
+        Route::get('/create', function () {
+            return view('admin.speciality.form', ['specialityId' => null]);
+        })->name('create');
+        
+        Route::get('/{id}/edit', function ($id) {
+            return view('admin.speciality.form', ['specialityId' => $id]);
+        })->name('edit');
+    });
     // ========================================
     // ADMIN PATIENT MANAGEMENT
     // ========================================
+
     // ========================================
     // PATIENT MANAGEMENT (ADMIN) ← ADD THIS SECTION
     // ========================================
+
     Route::prefix('patients')->name('patients.')->group(function () {
         // ========================================
         // CHECK-IN (Livewire)
@@ -208,6 +239,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
             return view('admin.checkin.index');
         })->name('checkin.index');
 
+                // ========================================
+        // PATIENT APPOINTMENT ROUTES
+        // ========================================
+        // Tambahkan di dalam Route::prefix('pasien')->group()
+        Route::prefix('appointments')->name('appointments.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Patient\AppointmentController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\Patient\AppointmentController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\Patient\AppointmentController::class, 'store'])->name('store');
+            Route::get('/{appointment}', [App\Http\Controllers\Patient\AppointmentController::class, 'show'])->name('show');
+            Route::delete('/{appointment}/cancel', [App\Http\Controllers\Patient\AppointmentController::class, 'cancel'])->name('cancel');
+            
+            // AJAX Routes
+            Route::get('/available-slots', [App\Http\Controllers\Patient\AppointmentController::class, 'getSlots'])->name('get-slots');
+        });
         // ========================================
         // QUEUE MANAGEMENT (Livewire)
         // ========================================

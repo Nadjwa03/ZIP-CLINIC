@@ -10,6 +10,8 @@ class Patient extends Model
 {
     use SoftDeletes;
 
+    protected $primaryKey = 'patient_id';
+
     protected $fillable = [
         'owner_user_id',      // ← TAMBAHKAN INI
         'secret_code',        // ← TAMBAHKAN INI  
@@ -78,22 +80,22 @@ class Patient extends Model
      */
     public function appointments()
     {
-        return $this->hasMany(Appointment::class);
+        return $this->hasMany(Appointment::class, 'patient_id', 'patient_id');
     }
 
     public function queues()
     {
-        return $this->hasMany(Queue::class);
+        return $this->hasMany(Queue::class, 'patient_id', 'patient_id');
     }
 
     public function invoices()
     {
-        return $this->hasMany(Invoice::class);
+        return $this->hasMany(Invoice::class, 'patient_id', 'patient_id');
     }
 
     public function visits()
     {
-        return $this->hasMany(Visit::class);
+        return $this->hasMany(Visit::class, 'patient_id', 'patient_id');
     }
 
     /**
@@ -101,7 +103,7 @@ class Patient extends Model
      */
     public function media()
     {
-        return $this->hasMany(PatientMedia::class)->orderBy('taken_at', 'desc')->orderBy('created_at', 'desc');
+        return $this->hasMany(PatientMedia::class, 'patient_id', 'patient_id')->orderBy('taken_at', 'desc')->orderBy('created_at', 'desc');
     }
 
     /**
@@ -109,7 +111,7 @@ class Patient extends Model
      */
     public function activeMedia()
     {
-        return $this->hasMany(PatientMedia::class)->active()->orderBy('taken_at', 'desc');
+        return $this->hasMany(PatientMedia::class, 'patient_id', 'patient_id')->active()->orderBy('taken_at', 'desc');
     }
 
     /**
