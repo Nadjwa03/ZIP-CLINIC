@@ -57,7 +57,7 @@
             <div class="space-y-3">
                 
                 <!-- Pasien Baru -->
-                <a href="{{ route('pasien.patients.create') }}" 
+                <a href="{{ route('patient.patients.create') }}" 
                    class="block w-full bg-[#6B4423] text-white py-4 rounded-lg font-bold hover:bg-[#5A3A1E] transition-colors">
                     <div class="flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +68,7 @@
                 </a>
                 
                 <!-- Pasien Lama -->
-                <a href="{{ route('pasien.patients.claim') }}" 
+                <a href="{{ route('patient.patients.claim') }}" 
                    class="block w-full bg-white border-2 border-gray-300 text-gray-700 py-4 rounded-lg font-bold hover:border-[#6B4423] hover:text-[#6B4423] transition-colors">
                     <div class="flex items-center justify-center space-x-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

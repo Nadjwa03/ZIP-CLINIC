@@ -4,7 +4,7 @@
 
 <!-- Back Button Header -->
 <div class="flex items-center mb-6">
-    <a href="{{ route('pasien.dashboard') }}" class="mr-3 text-gray-600 hover:text-gray-800">
+    <a href="{{ route('patient.dashboard') }}" class="mr-3 text-gray-600 hover:text-gray-800">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
@@ -26,20 +26,21 @@
 </div>
 
 <!-- Claim Form -->
-<form method="POST" action="{{ route('pasien.patients.claim.store') }}" class="space-y-6">
+<form method="POST" action="{{ route('patient.claim.submit') }}" class="space-y-6">
     @csrf
     
     <!-- Patient Code -->
     <div>
-        <label class="block text-base font-medium text-gray-800 mb-2">Patient Code</label>
+        <label class="block text-base font-medium text-gray-800 mb-2">Nomor Rekam Medis(MRN)</label>
         <input 
             type="text" 
-            name="patient_code" 
-            value="{{ old('patient_code') }}" 
-            placeholder="Masukkan Patient Code"
-            required 
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6B4423] focus:border-transparent text-base @error('patient_code') border-red-500 @enderror">
-        @error('patient_code')
+            name="medical_record_number" 
+            id="medical_record_number"
+            value="{{ old('medical_record_number') }}" 
+            placeholder="Masukkan Nomor Rekam Medis"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6B4423] focus:border-transparent text-base @error('medical_record_number') border-red-500 @enderror">
+        @error('medical_record_number')
         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
         @enderror
     </div>
@@ -50,7 +51,9 @@
         <input 
             type="password" 
             name="secret_code" 
+            id="secret_code" 
             placeholder="Masukkan Secret Code"
+            value="{{ old('secret_code') }}"
             required 
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6B4423] focus:border-transparent text-base @error('secret_code') border-red-500 @enderror">
         @error('secret_code')
@@ -73,7 +76,7 @@
     <!-- Buttons -->
     <div class="flex space-x-3 pt-4 pb-24">
         <!-- Batal -->
-        <a href="{{ route('pasien.dashboard') }}" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 text-center py-4 rounded-lg font-bold hover:bg-gray-50">
+        <a href="{{ route('patient.dashboard') }}" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 text-center py-4 rounded-lg font-bold hover:bg-gray-50">
             Batal
         </a>
         

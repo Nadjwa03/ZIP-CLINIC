@@ -19,7 +19,7 @@
 <!-- Page Header with Back Button -->
 <div class="mb-6">
     <!-- Back Button -->
-    <!-- <a href="{{ route('pasien.dashboard') }}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-4">
+    <!-- <a href="{{ route('patient.dashboard') }}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-4">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
@@ -29,7 +29,7 @@
     <!-- Title & Add Button -->
     <div class="flex items-center justify-between">
         <div>
-            <a href="{{ route('pasien.dashboard') }}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-4">
+            <a href="{{ route('patient.dashboard') }}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-4">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -37,7 +37,7 @@
             <h2 class="text-xl font-bold text-gray-800">List Pasien</h2>
         </a>
         <!-- Add Patient Icon (Mobile) -->
-        <!-- <a href="{{ route('pasien.patients.create') }}" class="w-12 h-12 bg-[#6B4423] text-white rounded-full flex items-center justify-center hover:bg-[#5A3A1E]">
+        <!-- <a href="{{ route('patient.patients.create') }}" class="w-12 h-12 bg-[#6B4423] text-white rounded-full flex items-center justify-center hover:bg-[#5A3A1E]">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -142,7 +142,7 @@
             </div>
             
             <!-- Edit Button -->
-            <a href="{{ route('pasien.patients.edit', $patient->patient_id) }}"
+            <a href="{{ route('patient.patients.edit', $patient->patient_id) }}"
                class="ml-4 flex-shrink-0 w-8 h-8 bg-white border border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-[#6B4423] hover:border-[#6B4423]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>

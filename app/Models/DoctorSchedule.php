@@ -24,8 +24,6 @@ class DoctorSchedule extends Model
      */
     protected $casts = [
         'day_of_week' => 'integer',
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
         'effective_from' => 'date',
         'effective_to' => 'date',
         'is_active' => 'boolean',
@@ -36,7 +34,7 @@ class DoctorSchedule extends Model
      */
     public function doctor()
     {
-        return $this->belongsTo(Doctor::class, 'doctor_user_id', 'user_id');
+        return $this->belongsTo(Doctor::class, 'doctor_user_id', 'doctor_user_id');
     }
 
     /**

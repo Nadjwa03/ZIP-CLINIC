@@ -104,9 +104,13 @@ class PatientController extends Controller
             // Generate Medical Record Number
             $mrn = $this->generateMedicalRecordNumber();
 
+            // Generate Secret Code for patient claim
+            $secretCode = Patient::generateSecretCode();
+
             // Create patient
             $patient = Patient::create([
                 'medical_record_number' => $mrn,
+                'secret_code' => $secretCode,
                 'full_name' => $validated['full_name'],
                 'id_type' => $validated['id_type'],
                 'id_number' => $validated['id_number'],
@@ -127,8 +131,10 @@ class PatientController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('admin.patients.index')
-                ->with('success', "Pasien {$patient->full_name} berhasil didaftarkan dengan No. RM: {$mrn}");
+                ->route('admin.patients.show', $patient->patient_id)
+                ->with('success', "Pasien {$patient->full_name} berhasil didaftarkan!")
+                ->with('secret_code', $secretCode)
+                ->with('show_claim_info', true);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -229,6 +235,40 @@ class PatientController extends Controller
             return redirect()
                 ->route('admin.patients.index')
                 ->with('success', "Data pasien {$name} berhasil dihapus");
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Regenerate secret code for patient claim
+     */
+    public function regenerateSecretCode(Patient $patient)
+    {
+        try {
+            // Check if already claimed
+            if ($patient->is_claimed) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Rekam medis ini sudah di-claim oleh pasien. Tidak dapat generate kode baru.');
+            }
+
+            // Generate new secret code
+            $newSecretCode = Patient::generateSecretCode();
+
+            // Update patient
+            $patient->update([
+                'secret_code' => $newSecretCode
+            ]);
+
+            return redirect()
+                ->route('admin.patients.show', $patient->patient_id)
+                ->with('success', 'Kode rahasia berhasil di-generate ulang!')
+                ->with('secret_code', $newSecretCode)
+                ->with('show_claim_info', true);
 
         } catch (\Exception $e) {
             return redirect()

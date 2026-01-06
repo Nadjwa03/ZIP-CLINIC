@@ -76,6 +76,47 @@ class Patient extends Model
     }
 
     /**
+     * Check if patient account is claimed
+     */
+    public function getIsClaimedAttribute()
+    {
+        return !is_null($this->owner_user_id) && !is_null($this->claimed_at);
+    }
+
+    /**
+     * Generate unique secret code (6 digits)
+     */
+    public static function generateSecretCode()
+    {
+        do {
+            $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        } while (self::where('secret_code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * Claim this patient record with user account
+     */
+    public function claimByUser($userId)
+    {
+        $this->owner_user_id = $userId;
+        $this->claimed_at = now();
+        $this->secret_code = null; // Clear secret code after claim
+        $this->save();
+
+        return $this;
+    }
+
+    /**
+     * Verify secret code
+     */
+    public function verifySecretCode($code)
+    {
+        return $this->secret_code === $code;
+    }
+
+    /**
      * Relationships
      */
     public function appointments()

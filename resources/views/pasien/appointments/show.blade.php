@@ -4,7 +4,7 @@
 
 <!-- Page Title -->
 <div class="mb-6">
-    <a href="{{ route('pasien.appointments.index') }}" class="inline-flex items-center text-[#6B4423] font-semibold mb-2 hover:underline">
+    <a href="{{ route('patient.appointments.index') }}" class="inline-flex items-center text-[#6B4423] font-semibold mb-2 hover:underline">
         <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
@@ -192,13 +192,13 @@
     
     @if($appointment->status == 'APPROVED')
     <!-- Reschedule Button -->
-    <a href="{{ route('pasien.appointments.create') }}" class="block w-full bg-blue-500 text-white text-center py-3 rounded-lg font-bold hover:bg-blue-600">
+    <a href="{{ route('patient.appointments.create') }}" class="block w-full bg-blue-500 text-white text-center py-3 rounded-lg font-bold hover:bg-blue-600">
         Reschedule
     </a>
     @endif
     
     <!-- Back Button -->
-    <a href="{{ route('pasien.appointments.index') }}" class="block w-full bg-gray-200 text-gray-700 text-center py-3 rounded-lg font-bold hover:bg-gray-300">
+    <a href="{{ route('patient.appointments.index') }}" class="block w-full bg-gray-200 text-gray-700 text-center py-3 rounded-lg font-bold hover:bg-gray-300">
         Kembali ke Daftar Janji Temu
     </a>
 </div>

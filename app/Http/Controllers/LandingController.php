@@ -15,10 +15,16 @@ class LandingController extends Controller
     public function index()
     {
         // Fetch active services (for landing page section)
-        $services = Service::forLanding(6)->get();
-        
+        $services = Service::where('is_active', true)
+            ->orderBy('service_name')
+            ->limit(6)
+            ->get();
+
         // Fetch active doctors (for landing page section)
-        $doctors = Doctor::forLanding(4)->get();
+        $doctors = Doctor::where('is_active', true)
+            ->with('user')
+            ->limit(4)
+            ->get();
         
         // Fetch clinic settings
         $settings = AppSetting::first();

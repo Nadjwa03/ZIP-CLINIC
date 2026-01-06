@@ -51,40 +51,53 @@ class AppointmentCalendar extends Component
         $doctors = Doctor::with('user')
             ->where('is_active', true)
             ->get();
-        
-        // Get appointments for current date
+
+        // Get appointments for current date/week
         $appointments = $this->getAppointments();
-        
+
         // Calculate statistics
         $this->calculateStats($appointments);
-        
+
         // Get time slots (7 AM - 9 PM)
         $timeSlots = $this->generateTimeSlots();
-        
+
+        // Get week dates if in week view
+        $weekDates = $this->viewMode === 'week' ? $this->getWeekDates() : [];
+
         return view('livewire.admin.appointments.appointment-calendar', [
             'doctors' => $doctors,
             'appointments' => $appointments,
             'timeSlots' => $timeSlots,
+            'weekDates' => $weekDates,
         ]);
     }
     
     public function getAppointments()
     {
-        $query = Appointment::with(['patient', 'doctor.user', 'service'])
-            ->whereDate('scheduled_start_at', $this->currentDate);
-        
+        $query = Appointment::with(['patient', 'doctor.user', 'service']);
+
+        if ($this->viewMode === 'week') {
+            // Get appointments for the whole week
+            $startOfWeek = Carbon::parse($this->currentDate)->startOfWeek();
+            $endOfWeek = Carbon::parse($this->currentDate)->endOfWeek();
+            $query->whereBetween('scheduled_start_at', [$startOfWeek, $endOfWeek]);
+        } else {
+            // Get appointments for single day
+            $query->whereDate('scheduled_start_at', $this->currentDate);
+        }
+
         // Filter by doctor
         if ($this->selectedDoctor !== 'all') {
             $query->where('doctor_user_id', $this->selectedDoctor);
         }
-        
+
         // Search by patient name
         if ($this->searchTerm) {
             $query->whereHas('patient', function($q) {
-                $q->where('name', 'like', '%' . $this->searchTerm . '%');
+                $q->where('full_name', 'like', '%' . $this->searchTerm . '%');
             });
         }
-        
+
         return $query->orderBy('scheduled_start_at')->get();
     }
     
@@ -116,21 +129,45 @@ class AppointmentCalendar extends Component
     
     public function previousDay()
     {
-        $this->currentDate = Carbon::parse($this->currentDate)
-            ->subDay()
-            ->format('Y-m-d');
+        if ($this->viewMode === 'week') {
+            $this->currentDate = Carbon::parse($this->currentDate)
+                ->subWeek()
+                ->format('Y-m-d');
+        } else {
+            $this->currentDate = Carbon::parse($this->currentDate)
+                ->subDay()
+                ->format('Y-m-d');
+        }
     }
-    
+
     public function nextDay()
     {
-        $this->currentDate = Carbon::parse($this->currentDate)
-            ->addDay()
-            ->format('Y-m-d');
+        if ($this->viewMode === 'week') {
+            $this->currentDate = Carbon::parse($this->currentDate)
+                ->addWeek()
+                ->format('Y-m-d');
+        } else {
+            $this->currentDate = Carbon::parse($this->currentDate)
+                ->addDay()
+                ->format('Y-m-d');
+        }
     }
-    
+
     public function goToToday()
     {
         $this->currentDate = Carbon::today()->format('Y-m-d');
+    }
+
+    public function getWeekDates()
+    {
+        $startOfWeek = Carbon::parse($this->currentDate)->startOfWeek();
+        $dates = [];
+
+        for ($i = 0; $i < 7; $i++) {
+            $dates[] = $startOfWeek->copy()->addDays($i);
+        }
+
+        return $dates;
     }
     
     public function viewAppointmentDetail($appointmentId)
@@ -153,12 +190,12 @@ class AppointmentCalendar extends Component
     public function updateStatus($appointmentId, $newStatus)
     {
         $appointment = Appointment::find($appointmentId);
-        
+
         if ($appointment) {
             $appointment->update(['status' => $newStatus]);
-            
+
             session()->flash('success', 'Status appointment berhasil diupdate');
-            $this->emit('refreshAppointments');
+            $this->dispatch('refreshAppointments');
         }
     }
     

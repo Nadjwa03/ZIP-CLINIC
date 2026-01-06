@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\DoctorController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\AppointmentController; 
 
 // ========================================
 // PATIENT AREA CONTROLLERS (UPDATED!)
@@ -72,12 +73,16 @@ Route::middleware('auth')->group(function () {
     // ========================================
     // PATIENT AREA (UPDATED WITH SELF-SERVICE!)
     // ========================================
-    Route::prefix('pasien')->name('pasien.')->middleware(['check_role:patient', 'check_status'])->group(function () {
-        
+    Route::prefix('pasien')->name('patient.')->middleware(['check_role:patient', 'check_status'])->group(function () {
+
         // Dashboard
         Route::get('/', [PatientDashboardController::class, 'index'])->name('dashboard');
         Route::post('/switch-patient', [PatientDashboardController::class, 'switchPatient'])->name('switch-patient');
-        
+
+        // Claim Patient Record
+        Route::get('/claim', [PatientDashboardController::class, 'showClaimForm'])->name('claim.form');
+        Route::post('/claim', [PatientDashboardController::class, 'claimPatient'])->name('claim.submit');
+
         // Patient Management (Self-Service Registration)
         Route::get('patients', [PatientManagementController::class, 'index'])->name('patients.index');
         Route::get('patients/create', [PatientManagementController::class, 'create'])->name('patients.create');
@@ -92,7 +97,12 @@ Route::middleware('auth')->group(function () {
         Route::get('appointments/{appointment}', [PatientAppointmentController::class, 'show'])->name('appointments.show');
         Route::get('appointments/slots', [PatientAppointmentController::class, 'getSlots'])->name('appointments.slots');
         Route::post('appointments/{appointment}/cancel', [PatientAppointmentController::class, 'cancel'])->name('appointments.cancel');
-        
+        // Route::get('/available-slots', [AppointmentController::class, 'getAvailableSlots'])->name('available-slots');
+        // Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('show');
+        // Route::get('/{appointment}/edit', [AppointmentController::class, 'edit'])->name('edit');
+        // Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('update');
+        // Route::patch('/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('update-status');
+        // Route::delete('/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('cancel');
         // Medical Records
         Route::get('medical-records', [MedicalRecordController::class, 'index'])->name('medical-records.index');
         Route::get('medical-records/{id}', [MedicalRecordController::class, 'show'])->name('medical-records.show');
@@ -147,15 +157,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
     Route::prefix('appointments')->name('appointments.')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\AppointmentController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\Admin\AppointmentController::class, 'create'])->name('create');
+
+        // AJAX Routes - Must be before {appointment} routes
+        Route::get('/available-slots', [App\Http\Controllers\Admin\AppointmentController::class, 'getAvailableSlots'])->name('available-slots');
+
         Route::post('/', [App\Http\Controllers\Admin\AppointmentController::class, 'store'])->name('store');
         Route::get('/{appointment}', [App\Http\Controllers\Admin\AppointmentController::class, 'show'])->name('show');
         Route::get('/{appointment}/edit', [App\Http\Controllers\Admin\AppointmentController::class, 'edit'])->name('edit');
         Route::put('/{appointment}', [App\Http\Controllers\Admin\AppointmentController::class, 'update'])->name('update');
         Route::patch('/{appointment}/status', [App\Http\Controllers\Admin\AppointmentController::class, 'updateStatus'])->name('update-status');
         Route::delete('/{appointment}/cancel', [App\Http\Controllers\Admin\AppointmentController::class, 'cancel'])->name('cancel');
-        
-        // AJAX Routes
-        Route::get('/available-slots', [App\Http\Controllers\Admin\AppointmentController::class, 'getAvailableSlots'])->name('available-slots');
     });
         // Check-in
         Route::get('/checkin', function () {
@@ -173,28 +184,48 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
         })->name('inventory.index');
 
     // ========================================
-    // SERVICES MANAGEMENT
+    // SERVICES MANAGEMENT (Master Data)
     // ========================================
     Route::prefix('services')->name('services.')->group(function () {
-            Route::get('/', [ServiceController::class, 'index'])->name('index');
-            Route::get('/create', [ServiceController::class, 'create'])->name('create');
-            Route::post('/', [ServiceController::class, 'store'])->name('store');
-            Route::get('/{service}/edit', [ServiceController::class, 'edit'])->name('edit');
-            Route::put('/{service}', [ServiceController::class, 'update'])->name('update');
-            Route::delete('/{service}', [ServiceController::class, 'destroy'])->name('destroy');
-        });
-    
+        Route::get('/', function () {
+            return view('admin.service.index');
+        })->name('index');
+        
+        Route::get('/create', function () {
+            return view('admin.service.form', ['serviceId' => null]);
+        })->name('create');
+        
+        Route::get('/{id}/edit', function ($id) {
+            return view('admin.service.form', ['serviceId' => $id]);
+        })->name('edit');
+    });
+
+
     // ========================================
-    // DOCTORS MANAGEMENT
+    // DOCTORS MANAGEMENT (Master Data)
     // ========================================
     Route::prefix('doctors')->name('doctors.')->group(function () {
-        Route::get('/', [DoctorController::class, 'index'])->name('index');
-        Route::get('/create', [DoctorController::class, 'view_create'])->name('create'); // ✅ view create
-        Route::post('/', [DoctorController::class, 'create'])->name('store');            // ✅ store
-        Route::get('/{id}/edit', [DoctorController::class, 'view_edit'])->name('edit');  // ✅ view edit
-        Route::put('/{id}/edit', [DoctorController::class, 'edit'])->name('update');          // ✅ update
-        Route::delete('/{id}/deactivate', [DoctorController::class, 'deactivate'])->name('deactivate');
-        Route::patch('/{id}/activate', [DoctorController::class, 'activate'])->name('activate');
+        Route::get('/', function () {
+            return view('admin.doctor.index');
+        })->name('index');
+
+        Route::get('/create', function () {
+            return view('admin.doctor.form', ['doctorId' => null]);
+        })->name('create');
+
+        Route::get('/{id}', function ($id) {
+            $doctor = \App\Models\Doctor::with(['user', 'speciality', 'schedules', 'appointments'])->findOrFail($id);
+            return view('admin.doctor.show', ['doctor' => $doctor]);
+        })->name('show');
+
+        Route::get('/{id}/edit', function ($id) {
+            return view('admin.doctor.form', ['doctorId' => $id]);
+        })->name('edit');
+
+        Route::get('/{id}/schedule', function ($id) {
+            $doctor = \App\Models\Doctor::findOrFail($id);
+            return view('admin.doctor.schedule', ['doctor' => $doctor]);
+        })->name('schedule');
     });
     
     
@@ -214,13 +245,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
         Route::get('/', function () {
             return view('admin.speciality.index');
         })->name('index');
-        
+
         Route::get('/create', function () {
-            return view('admin.speciality.form', ['specialityId' => null]);
+            return view('admin.speciality.form', [
+                'specialityId' => null,
+                'title' => 'Tambah Spesialisasi'
+            ]);
         })->name('create');
-        
+
         Route::get('/{id}/edit', function ($id) {
-            return view('admin.speciality.form', ['specialityId' => $id]);
+            return view('admin.speciality.form', [
+                'specialityId' => $id,
+                'title' => 'Edit Spesialisasi'
+            ]);
         })->name('edit');
     });
     // ========================================
@@ -266,6 +303,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
         Route::get('/{patient}/edit', [App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('edit');
         Route::put('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'update'])->name('update');
         Route::patch('/{patient}/toggle-status', [App\Http\Controllers\Admin\PatientController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{patient}/regenerate-code', [App\Http\Controllers\Admin\PatientController::class, 'regenerateSecretCode'])->name('regenerate-code');
         Route::delete('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('destroy');
 });
     Route::get('/pasien', fn () => 'halaman pasien (admin)')->name('pasien');

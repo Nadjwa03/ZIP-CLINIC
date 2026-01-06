@@ -2,215 +2,186 @@
 
 @section('content')
 
-<!-- Patient Selection (If multiple patients) -->
-@if($patients->count() > 1)
-<div class="mb-6">
-    <div class="bg-white rounded-lg shadow-sm p-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Pasien:</label>
-        <select id="patient-selector" onchange="switchPatient(this.value)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#6B4423] focus:border-transparent">
-            @foreach($patients as $p)
-            <option value="{{ $p->id }}" {{ $patient->id == $p->id ? 'selected' : '' }}>
-                {{ $p->full_name }} (MRN: {{ $p->medical_record_number }})
-            </option>
-            @endforeach
-        </select>
-    </div>
-</div>
-@endif
-
-<!-- Welcome Section -->
-<div class="mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">Halo, {{ $patient->full_name }}! 👋</h2>
-    <p class="text-gray-600">MRN: {{ $patient->medical_record_number }}</p>
-</div>
-
-<!-- Quick Stats -->
-<div class="grid grid-cols-3 gap-3 mb-6 -mt-2">
-    <!-- Appointments -->
-    <div class="bg-white rounded-lg shadow-sm p-4">
-        <div class="flex items-center space-x-2 mb-2">
-            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-            </div>
-        </div>
-        <p class="text-2xl font-bold text-gray-800">{{ $stats['appointments'] }}</p>
-        <p class="text-xs text-gray-500">Janji Temu</p>
-    </div>
-    
-    <!-- Medical Records -->
-    <div class="bg-white rounded-lg shadow-sm p-4">
-        <div class="flex items-center space-x-2 mb-2">
-            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-            </div>
-        </div>
-        <p class="text-2xl font-bold text-gray-800">{{ $stats['visits'] }}</p>
-        <p class="text-xs text-gray-500">Kunjungan</p>
-    </div>
-    
-    <!-- Total Visits -->
-    <div class="bg-white rounded-lg shadow-sm p-4">
-        <div class="flex items-center space-x-2 mb-2">
-            <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
-            </div>
-        </div>
-        <p class="text-2xl font-bold text-gray-800">{{ $stats['visits'] }}</p>
-        <p class="text-xs text-gray-500">Total Kunjungan</p>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="grid grid-cols-2 gap-3 mb-6">
-    <!-- Book Appointment -->
-    <a href="{{ route('pasien.appointments.create', ['patient_id' => $patient->id]) }}" class="bg-[#6B4423] hover:bg-[#5A3A1E] text-white rounded-lg p-4 shadow-sm transform hover:scale-105 transition-all">
-        <div class="flex flex-col items-center space-y-2">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+<!-- Back Button & Header -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+        <a href="{{ route('patient.dashboard') }}" class="mr-3 text-gray-600 hover:text-gray-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span class="font-semibold">Buat Janji Temu</span>
+        </a>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Janji Temu Saya</h2>
+            <p class="text-sm text-gray-600">{{ $patient->full_name }}</p>
         </div>
-    </a>
-    
-    <!-- My Appointments -->
-    <a href="{{ route('pasien.appointments.index', ['patient_id' => $patient->id]) }}" class="bg-blue-500 hover:bg-blue-600 text-white rounded-lg p-4 shadow-sm transform hover:scale-105 transition-all">
-        <div class="flex flex-col items-center space-y-2">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-            <span class="font-semibold">Lihat Janji Temu</span>
-        </div>
-    </a>
-    
-    <!-- Medical Records -->
-    <a href="{{ route('pasien.medical-records.index', ['patient_id' => $patient->id]) }}" class="bg-green-500 hover:bg-green-600 text-white rounded-lg p-4 shadow-sm transform hover:scale-105 transition-all">
-        <div class="flex flex-col items-center space-y-2">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <span class="font-semibold">Rekam Medis</span>
-        </div>
-    </a>
-    
-    <!-- Profile -->
-    <a href="{{ route('pasien.settings') }}" class="bg-purple-500 hover:bg-purple-600 text-white rounded-lg p-4 shadow-sm transform hover:scale-105 transition-all">
-        <div class="flex flex-col items-center space-y-2">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <span class="font-semibold">Profil Saya</span>
-        </div>
-    </a>
-</div>
-
-<!-- Upcoming Appointments -->
-@if($upcomingAppointments->count() > 0)
-<div class="mb-6">
-    <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-bold text-gray-800">Janji Temu Mendatang</h3>
-        <a href="{{ route('pasien.appointments.index', ['patient_id' => $patient->id]) }}" class="text-sm text-[#6B4423] font-semibold">Lihat Semua →</a>
     </div>
-    
-    <div class="space-y-3">
-        @foreach($upcomingAppointments as $appointment)
-        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 {{ $appointment->status == 'APPROVED' ? 'border-green-500' : 'border-blue-500' }}">
-            <div class="flex items-start justify-between">
-                <div class="flex-1">
-                    <div class="flex items-center space-x-2 mb-2">
-                        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800">{{ $appointment->assignedDoctor->name ?? $appointment->preferredDoctor->name ?? 'Dokter belum ditentukan' }}</p>
-                            <p class="text-sm text-gray-500">{{ $appointment->service->name }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center space-x-4 text-sm text-gray-600">
-                        <div class="flex items-center space-x-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <span>{{ $appointment->slot->slot_date->format('d M Y') }}</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span>{{ \Carbon\Carbon::parse($appointment->slot->start_time)->format('H:i') }}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div>
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $appointment->status == 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
-                        {{ $appointment->status }}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="mt-3">
-                <a href="{{ route('pasien.appointments.show', $appointment->id) }}" class="text-sm text-[#6B4423] font-semibold hover:underline">Lihat Detail →</a>
-            </div>
-        </div>
-        @endforeach
-    </div>
-</div>
-@else
-<div class="mb-6">
-    <div class="bg-white rounded-lg shadow-sm p-6 text-center">
-        <svg class="w-16 h-16 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    <a href="{{ route('patient.appointments.create') }}" class="bg-[#6B4423] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#5A3A1E] flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
-        <p class="text-gray-500 mb-4">Belum ada janji temu yang dijadwalkan</p>
-        <a href="{{ route('pasien.appointments.create', ['patient_id' => $patient->id]) }}" class="inline-block bg-[#6B4423] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#5A3A1E]">
-            Buat Janji Temu Sekarang
+        <span>Buat Baru</span>
+    </a>
+</div>
+
+<!-- Filter Tabs -->
+<div class="bg-white rounded-lg shadow-sm p-2 mb-6">
+    <div class="flex space-x-2">
+        <a href="{{ route('patient.appointments.index', ['status' => 'all']) }}"
+           class="flex-1 text-center py-2 px-4 rounded-lg font-semibold transition-all {{ $filter == 'all' ? 'bg-[#6B4423] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+            Semua ({{ $counts['all'] }})
+        </a>
+        <a href="{{ route('patient.appointments.index', ['status' => 'upcoming']) }}"
+           class="flex-1 text-center py-2 px-4 rounded-lg font-semibold transition-all {{ $filter == 'upcoming' ? 'bg-[#6B4423] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+            Mendatang ({{ $counts['upcoming'] }})
+        </a>
+        <a href="{{ route('patient.appointments.index', ['status' => 'completed']) }}"
+           class="flex-1 text-center py-2 px-4 rounded-lg font-semibold transition-all {{ $filter == 'completed' ? 'bg-[#6B4423] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+            Selesai ({{ $counts['completed'] }})
+        </a>
+        <a href="{{ route('patient.appointments.index', ['status' => 'cancelled']) }}"
+           class="flex-1 text-center py-2 px-4 rounded-lg font-semibold transition-all {{ $filter == 'cancelled' ? 'bg-[#6B4423] text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+            Dibatalkan ({{ $counts['cancelled'] }})
         </a>
     </div>
 </div>
-@endif
 
-<!-- Info Banner -->
-<div class="bg-gradient-to-r from-[#6B4423] to-[#5A3A1E] rounded-lg p-4 text-white mb-6">
-    <div class="flex items-center space-x-3">
-        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <div>
-            <p class="font-bold mb-1">💡 Tips Kesehatan Gigi</p>
-            <p class="text-sm opacity-90">Jangan lupa sikat gigi 2x sehari dan kontrol rutin setiap 6 bulan!</p>
+<!-- Appointments List -->
+@if($appointments->count() > 0)
+<div class="space-y-4 mb-20">
+    @foreach($appointments as $appointment)
+    <a href="{{ route('patient.appointments.show', $appointment->appointment_id) }}"
+       class="block bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all border-l-4
+              {{ $appointment->status == 'BOOKED' ? 'border-blue-500' : '' }}
+              {{ $appointment->status == 'CHECKED_IN' ? 'border-green-500' : '' }}
+              {{ $appointment->status == 'IN_TREATMENT' ? 'border-yellow-500' : '' }}
+              {{ $appointment->status == 'COMPLETED' ? 'border-gray-400' : '' }}
+              {{ $appointment->status == 'CANCELLED' ? 'border-red-500' : '' }}">
+
+        <!-- Header: Service & Status -->
+        <div class="flex items-start justify-between mb-3">
+            <div class="flex-1">
+                <h3 class="font-bold text-gray-800 text-lg">{{ $appointment->service->service_name }}</h3>
+                <p class="text-sm text-gray-500">{{ $appointment->service->speciality->name ?? 'Layanan Umum' }}</p>
+            </div>
+            <span class="px-3 py-1 text-xs font-bold rounded-full
+                        {{ $appointment->status == 'BOOKED' ? 'bg-blue-100 text-blue-700' : '' }}
+                        {{ $appointment->status == 'CHECKED_IN' ? 'bg-green-100 text-green-700' : '' }}
+                        {{ $appointment->status == 'IN_TREATMENT' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                        {{ $appointment->status == 'COMPLETED' ? 'bg-gray-100 text-gray-700' : '' }}
+                        {{ $appointment->status == 'CANCELLED' ? 'bg-red-100 text-red-700' : '' }}">
+                @switch($appointment->status)
+                    @case('BOOKED') Terjadwal @break
+                    @case('CHECKED_IN') Check-in @break
+                    @case('IN_TREATMENT') Perawatan @break
+                    @case('COMPLETED') Selesai @break
+                    @case('CANCELLED') Dibatalkan @break
+                    @default {{ $appointment->status }}
+                @endswitch
+            </span>
         </div>
-    </div>
+
+        <!-- Doctor Info -->
+        <div class="flex items-center space-x-3 mb-3 pb-3 border-b border-gray-100">
+            <div class="w-12 h-12 bg-[#6B4423] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                {{ strtoupper(substr($appointment->doctor->user->name ?? 'D', 0, 1)) }}
+            </div>
+            <div>
+                <p class="font-semibold text-gray-800">{{ $appointment->doctor->user->name ?? 'Dokter' }}</p>
+                <p class="text-sm text-gray-500">{{ $appointment->doctor->specialization ?? 'Dokter Gigi' }}</p>
+            </div>
+        </div>
+
+        <!-- Date & Time Info -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Tanggal</p>
+                    <p class="font-semibold text-gray-800">{{ \Carbon\Carbon::parse($appointment->scheduled_start_at)->format('d M Y') }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Waktu</p>
+                    <p class="font-semibold text-gray-800">{{ \Carbon\Carbon::parse($appointment->scheduled_start_at)->format('H:i') }} - {{ \Carbon\Carbon::parse($appointment->scheduled_end_at)->format('H:i') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Info -->
+        <!-- <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm text-gray-600">Estimasi Biaya</span>
+            </div>
+            <span class="font-bold text-[#6B4423]">Rp {{ number_format($appointment->service->price, 0, ',', '.') }}</span>
+        </div> -->
+
+        <!-- Complaint (if exists) -->
+        @if($appointment->complaint)
+        <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p class="text-xs font-semibold text-yellow-800 mb-1">Keluhan:</p>
+            <p class="text-sm text-yellow-900">{{ Str::limit($appointment->complaint, 100) }}</p>
+        </div>
+        @endif
+
+        <!-- View Detail Arrow -->
+        <div class="flex items-center justify-end mt-3 text-[#6B4423] font-semibold">
+            <span class="text-sm">Lihat Detail</span>
+            <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </div>
+    </a>
+    @endforeach
 </div>
 
-@endsection
+<!-- Pagination -->
+<div class="mb-20">
+    {{ $appointments->links() }}
+</div>
 
-@push('scripts')
-<script>
-function switchPatient(patientId) {
-    // Store selected patient in session and reload
-    fetch('{{ route("pasien.switch-patient") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ patient_id: patientId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.reload();
-        }
-    });
-}
-</script>
-@endpush
+@else
+<!-- Empty State -->
+<div class="bg-white rounded-lg shadow-sm p-8 text-center mb-20">
+    <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+    </svg>
+    <h3 class="text-lg font-bold text-gray-800 mb-2">
+        @if($filter == 'upcoming')
+            Tidak Ada Janji Temu Mendatang
+        @elseif($filter == 'completed')
+            Belum Ada Janji Temu Selesai
+        @elseif($filter == 'cancelled')
+            Tidak Ada Janji Temu Dibatalkan
+        @else
+            Belum Ada Janji Temu
+        @endif
+    </h3>
+    <p class="text-gray-500 mb-6">
+        @if($filter == 'all')
+            Buat janji temu pertama Anda sekarang untuk mulai perawatan
+        @else
+            Tidak ada janji temu dengan status ini
+        @endif
+    </p>
+    @if($filter == 'all' || $filter == 'upcoming')
+    <a href="{{ route('patient.appointments.create') }}" class="inline-block bg-[#6B4423] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#5A3A1E]">
+        Buat Janji Temu
+    </a>
+    @endif
+</div>
+@endif
+
+@endsection

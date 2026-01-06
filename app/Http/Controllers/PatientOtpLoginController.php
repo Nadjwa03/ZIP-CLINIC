@@ -228,11 +228,11 @@ class PatientOtpLoginController extends Controller
         $request->session()->regenerate();
         $this->clearSession($request);
 
-        $message = $otpType === 'register' 
+        $message = $otpType === 'register'
             ? 'Registrasi berhasil! Selamat datang di Klinik ZIP.'
             : 'Login berhasil!';
 
-        return redirect()->route('pasien.dashboard')->with('success', $message);
+        return redirect()->route('patient.dashboard')->with('success', $message);
     }
 
     /**

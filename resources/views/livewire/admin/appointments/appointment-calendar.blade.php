@@ -140,22 +140,24 @@
     </div>
 
     <!-- Calendar Grid -->
+    @if($viewMode === 'day')
+    <!-- DAY VIEW -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div class="grid grid-cols-4 gap-0 border-b border-gray-200">
             <!-- Time Column Header -->
             <div class="col-span-1 bg-gray-50 p-4 border-r border-gray-200">
                 <p class="text-sm font-medium text-gray-600">TIME</p>
             </div>
-            
+
             <!-- Doctor Columns Headers -->
             @foreach($doctors->take(3) as $doctor)
                 <div class="p-4 bg-gray-50 border-r border-gray-200">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span class="text-blue-600 font-semibold text-sm">{{ substr($doctor->name, 0, 1) }}</span>
+                            <span class="text-blue-600 font-semibold text-sm">{{ substr($doctor->user->name ?? $doctor->display_name, 0, 1) }}</span>
                         </div>
                         <div>
-                            <p class="font-medium text-gray-900 text-sm">{{ $doctor->name }}</p>
+                            <p class="font-medium text-gray-900 text-sm">{{ $doctor->user->name ?? $doctor->display_name }}</p>
                             <p class="text-xs text-gray-500">Today's appointment: {{ $appointments->where('doctor_user_id', $doctor->doctor_user_id)->count() }} patient(s)</p>
                         </div>
                     </div>
@@ -178,11 +180,11 @@
                             @php
                                 $slotStart = \Carbon\Carbon::parse($currentDate . ' ' . $timeSlot);
                                 $slotEnd = $slotStart->copy()->addHour();
-                                
+
                                 $doctorAppointments = $appointments->filter(function($apt) use ($doctor, $slotStart, $slotEnd) {
                                     $aptStart = \Carbon\Carbon::parse($apt->scheduled_start_at);
-                                    return $apt->doctor_user_id == $doctor->doctor_user_id && 
-                                           $aptStart->between($slotStart, $slotEnd, false);
+                                    return $apt->doctor_user_id == $doctor->doctor_user_id &&
+                                           $aptStart->gte($slotStart) && $aptStart->lt($slotEnd);
                                 });
                             @endphp
                             
@@ -210,6 +212,74 @@
             @endforeach
         </div>
     </div>
+
+    @else
+    <!-- WEEK VIEW -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div class="grid grid-cols-8 gap-0 border-b border-gray-200">
+            <!-- Time Column Header -->
+            <div class="col-span-1 bg-gray-50 p-4 border-r border-gray-200">
+                <p class="text-sm font-medium text-gray-600">TIME</p>
+            </div>
+
+            <!-- Week Day Headers -->
+            @foreach($weekDates as $date)
+                <div class="p-4 bg-gray-50 border-r border-gray-200">
+                    <p class="text-xs text-gray-500">{{ $date->format('D') }}</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $date->format('d') }}</p>
+                    <p class="text-xs text-gray-500">{{ $date->format('M') }}</p>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Time Slots with Appointments -->
+        <div class="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
+            @foreach($timeSlots as $timeSlot)
+                <div class="grid grid-cols-8 gap-0">
+                    <!-- Time -->
+                    <div class="col-span-1 p-4 bg-gray-50 border-r border-gray-200">
+                        <p class="text-sm font-medium text-gray-600">{{ $timeSlot }}</p>
+                    </div>
+
+                    <!-- Day Slots -->
+                    @foreach($weekDates as $date)
+                        <div class="p-2 border-r border-gray-200 min-h-[80px]">
+                            @php
+                                $dateStr = $date->format('Y-m-d');
+                                $slotStart = \Carbon\Carbon::parse($dateStr . ' ' . $timeSlot);
+                                $slotEnd = $slotStart->copy()->addHour();
+
+                                $dayAppointments = $appointments->filter(function($apt) use ($slotStart, $slotEnd) {
+                                    $aptStart = \Carbon\Carbon::parse($apt->scheduled_start_at);
+                                    return $aptStart->gte($slotStart) && $aptStart->lt($slotEnd);
+                                });
+                            @endphp
+
+                            @foreach($dayAppointments as $appointment)
+                                <div wire:click="viewAppointmentDetail({{ $appointment->appointment_id }})"
+                                     class="mb-2 p-2 rounded-lg cursor-pointer hover:shadow-md transition-shadow {{ $this->getStatusColor($appointment->status) }} border">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-semibold">{{ $appointment->patient->full_name ?? 'N/A' }}</span>
+                                        @if($appointment->status === 'COMPLETED')
+                                            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs">
+                                        {{ \Carbon\Carbon::parse($appointment->scheduled_start_at)->format('H:i') }}
+                                    </p>
+                                    <p class="text-xs mt-1 truncate">{{ $appointment->service->name ?? 'N/A' }}</p>
+                                    <p class="text-xs text-gray-600 truncate">Dr. {{ $appointment->doctor->user->name ?? $appointment->doctor->display_name }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     <!-- Detail Modal -->
     @if($showDetailModal && $selectedAppointment)

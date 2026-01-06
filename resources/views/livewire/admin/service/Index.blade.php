@@ -28,7 +28,7 @@
                 </div>
                 <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                 </div>
             </div>
@@ -70,11 +70,11 @@
                 <input
                     wire:model.live.debounce.300ms="search"
                     type="text"
-                    placeholder="🔍 Cari nama layanan, kode, atau deskripsi..."
+                    placeholder="🔍 Cari nama layanan atau kode..."
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
             </div>
 
-            <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-3">
                 <select wire:model.live="specialityFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
                     <option value="">Semua Spesialisasi</option>
                     @foreach($specialities as $speciality)
@@ -105,87 +105,85 @@
     <!-- Table -->
     <div class="bg-white shadow rounded-lg overflow-hidden">
         @if($services->count() > 0)
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Layanan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spesialisasi</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durasi</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @foreach($services as $index => $service)
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $services->firstItem() + $index }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="text-sm font-mono text-gray-600">{{ $service->code ?: '-' }}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ $service->service_name }}</div>
-                            @if($service->description)
-                                <div class="text-xs text-gray-500 mt-1">{{ Str::limit($service->description, 50) }}</div>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                                {{ $service->speciality->speciality_name }}
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Layanan</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spesialisasi</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durasi</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach($services as $index => $service)
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ $services->firstItem() + $index }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-mono text-gray-600">{{ $service->code ?? '-' }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">{{ $service->service_name }}</div>
+                        <div class="text-sm text-gray-500">
+                            {{ $service->description ? Str::limit($service->description, 50) : '-' }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                            {{ $service->speciality->speciality_name ?? '-' }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ $service->formatted_price }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-600">{{ $service->formatted_duration }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        @if($service->is_active)
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Aktif
                             </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-semibold text-gray-900">{{ $service->formatted_price }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-600">{{ $service->formatted_duration }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            @if($service->is_active)
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Aktif
-                                </span>
-                            @else
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                    Tidak Aktif
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <div class="flex items-center justify-center gap-2">
-                                <!-- Toggle Status -->
-                                <button 
-                                    wire:click="toggleStatus({{ $service->service_id }})"
-                                    wire:confirm="Ubah status layanan {{ $service->service_name }}?"
-                                    class="px-3 py-1 {{ $service->is_active ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200' }} rounded transition text-xs">
-                                    {{ $service->is_active ? '⏸ Nonaktifkan' : '▶ Aktifkan' }}
-                                </button>
+                        @else
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Tidak Aktif
+                            </span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <div class="flex items-center justify-center gap-2">
+                            <!-- Toggle Status -->
+                            <button
+                                wire:click="toggleStatus({{ $service->service_id }})"
+                                wire:confirm="Ubah status layanan {{ $service->service_name }}?"
+                                class="px-3 py-1 {{ $service->is_active ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200' }} rounded transition text-xs">
+                                {{ $service->is_active ? '⏸ Nonaktifkan' : '▶ Aktifkan' }}
+                            </button>
 
-                                <!-- Edit -->
-                                <a href="{{ route('admin.services.edit', $service->service_id) }}" 
-                                   class="px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition text-xs">
-                                    ✏️ Edit
-                                </a>
+                            <!-- Edit -->
+                            <a href="{{ route('admin.services.edit', $service->service_id) }}"
+                               class="px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition text-xs">
+                                ✏️ Edit
+                            </a>
 
-                                <!-- Delete -->
-                                <button 
-                                    wire:click="deleteService({{ $service->service_id }})"
-                                    wire:confirm="Hapus layanan {{ $service->service_name }}? Data tidak dapat dikembalikan!"
-                                    class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded transition text-xs">
-                                    🗑️ Hapus
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                            <!-- Delete -->
+                            <button
+                                wire:click="deleteService({{ $service->service_id }})"
+                                wire:confirm="Hapus layanan {{ $service->service_name }}? Data tidak dapat dikembalikan!"
+                                class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded transition text-xs">
+                                🗑️ Hapus
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
 
         <!-- Pagination -->
         <div class="px-6 py-4 border-t border-gray-200">
@@ -195,7 +193,7 @@
         <!-- Empty State -->
         <div class="px-6 py-12 text-center">
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
             </svg>
             <p class="text-gray-600 font-medium mb-2">Tidak ada data layanan</p>
             <p class="text-gray-500 text-sm mb-4">Mulai dengan menambahkan layanan baru</p>

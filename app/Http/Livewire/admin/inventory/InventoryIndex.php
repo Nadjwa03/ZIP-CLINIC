@@ -25,11 +25,14 @@ class InventoryIndex extends Component
     public $itemId;
     public $SKU;
     public $name;
-    public $unit;
+    public $description;
+    public $type = 'MEDICINE';
+    public $unit = 'pcs';
     public $category;
-    public $sell_price;
-    public $qty_on_hand;
-    public $min_stock;
+    public $purchase_price = 0;
+    public $sell_price = 0;
+    public $qty_on_hand = 0;
+    public $min_stock = 10;
     public $vendor_name;
     public $is_active = true;
     
@@ -51,10 +54,13 @@ class InventoryIndex extends Component
     protected function rules()
     {
         return [
-            'SKU' => 'required|string|max:40|unique:inventory_item,SKU,' . $this->itemId . ',inventory_item_id',
+            'SKU' => 'required|string|max:40|unique:inventory_items,SKU,' . $this->itemId . ',inventory_item_id',
             'name' => 'required|string|max:160',
+            'description' => 'nullable|string',
+            'type' => 'required|in:MEDICINE,EQUIPMENT,CONSUMABLE,OTHER',
             'unit' => 'required|string|max:20',
             'category' => 'nullable|string|max:50',
+            'purchase_price' => 'required|numeric|min:0',
             'sell_price' => 'required|numeric|min:0',
             'qty_on_hand' => 'required|integer|min:0',
             'min_stock' => 'required|integer|min:0',
@@ -118,18 +124,12 @@ class InventoryIndex extends Component
     
     public function calculateStats()
     {
-        $allItems = InventoryItem::where('is_active', true)->get();
-        
-        $this->totalValue = $allItems->sum(function($item) {
-            return $item->qty_on_hand * $item->sell_price;
-        });
-        
-        $this->totalProducts = $allItems->count();
-        $this->inStock = $allItems->where('qty_on_hand', '>', 0)->count();
-        $this->lowStock = $allItems->filter(function($item) {
-            return $item->qty_on_hand > 0 && $item->qty_on_hand <= $item->min_stock;
-        })->count();
-        $this->outOfStock = $allItems->where('qty_on_hand', '=', 0)->count();
+        // Optimize: Use query builder instead of loading all items
+        $this->totalProducts = InventoryItem::active()->count();
+        $this->totalValue = InventoryItem::active()->sum(\DB::raw('qty_on_hand * purchase_price'));
+        $this->inStock = InventoryItem::active()->where('qty_on_hand', '>', 0)->count();
+        $this->lowStock = InventoryItem::active()->whereColumn('qty_on_hand', '<=', 'min_stock')->where('qty_on_hand', '>', 0)->count();
+        $this->outOfStock = InventoryItem::active()->where('qty_on_hand', '=', 0)->count();
     }
     
     public function sortBy($field)
@@ -151,37 +151,43 @@ class InventoryIndex extends Component
     public function openEditModal($itemId)
     {
         $item = InventoryItem::findOrFail($itemId);
-        
+
         $this->itemId = $item->inventory_item_id;
         $this->SKU = $item->SKU;
         $this->name = $item->name;
+        $this->description = $item->description;
+        $this->type = $item->type;
         $this->unit = $item->unit;
         $this->category = $item->category;
+        $this->purchase_price = $item->purchase_price;
         $this->sell_price = $item->sell_price;
         $this->qty_on_hand = $item->qty_on_hand;
         $this->min_stock = $item->min_stock;
         $this->vendor_name = $item->vendor_name;
         $this->is_active = $item->is_active;
-        
+
         $this->showEditModal = true;
     }
     
     public function saveItem()
     {
         $this->validate();
-        
+
         InventoryItem::create([
             'SKU' => $this->SKU,
             'name' => $this->name,
+            'description' => $this->description,
+            'type' => $this->type,
             'unit' => $this->unit,
             'category' => $this->category,
+            'purchase_price' => $this->purchase_price,
             'sell_price' => $this->sell_price,
             'qty_on_hand' => $this->qty_on_hand,
             'min_stock' => $this->min_stock,
             'vendor_name' => $this->vendor_name,
             'is_active' => $this->is_active,
         ]);
-        
+
         session()->flash('success', 'Item berhasil ditambahkan');
         $this->showAddModal = false;
         $this->resetForm();
@@ -190,20 +196,23 @@ class InventoryIndex extends Component
     public function updateItem()
     {
         $this->validate();
-        
+
         $item = InventoryItem::findOrFail($this->itemId);
         $item->update([
             'SKU' => $this->SKU,
             'name' => $this->name,
+            'description' => $this->description,
+            'type' => $this->type,
             'unit' => $this->unit,
             'category' => $this->category,
+            'purchase_price' => $this->purchase_price,
             'sell_price' => $this->sell_price,
             'qty_on_hand' => $this->qty_on_hand,
             'min_stock' => $this->min_stock,
             'vendor_name' => $this->vendor_name,
             'is_active' => $this->is_active,
         ]);
-        
+
         session()->flash('success', 'Item berhasil diupdate');
         $this->showEditModal = false;
         $this->resetForm();

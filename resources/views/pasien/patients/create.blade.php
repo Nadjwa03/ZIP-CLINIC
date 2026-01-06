@@ -23,7 +23,7 @@
 @endif
 
 <!-- Back Button -->
-<a href="{{ route('pasien.patients.index') }}" class="inline-flex items-center text-gray-600 hover:text-[#6B4423] mb-4 transition-colors">
+<a href="{{ route('patient.patients.index') }}" class="inline-flex items-center text-gray-600 hover:text-[#6B4423] mb-4 transition-colors">
     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
     </svg>
@@ -37,7 +37,7 @@
 </div>
 
 <!-- Create Form -->
-<form action="{{ route('pasien.patients.store') }}" method="POST" class="bg-white rounded-lg shadow-sm p-6">
+<form action="{{ route('patient.patients.store') }}" method="POST" class="bg-white rounded-lg shadow-sm p-6">
     @csrf
     
     <!-- Informasi Identitas -->
@@ -312,7 +312,7 @@
     
     <!-- Action Buttons -->
     <div class="flex items-center justify-between pt-6 border-t border-gray-200">
-        <a href="{{ route('pasien.patients.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+        <a href="{{ route('patient.patients.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
             Batal
         </a>
         <button type="submit" class="px-6 py-3 bg-[#6B4423] text-white rounded-lg hover:bg-[#5A3A1E] transition-colors font-bold">

@@ -82,4 +82,65 @@ class DashboardController extends Controller
             'message' => 'Patient switched successfully'
         ]);
     }
+
+    /**
+     * Show claim patient form
+     */
+    public function showClaimForm()
+    {
+        return view('pasien.patients.claim');
+    }
+
+    /**
+     * Process patient claim
+     */
+    public function claimPatient(Request $request)
+    {
+        $validated = $request->validate([
+            'medical_record_number' => 'required|string',
+            'secret_code' => 'required|string|size:6',
+        ], [
+            'medical_record_number.required' => 'Nomor Rekam Medis wajib diisi',
+            'secret_code.required' => 'Kode Rahasia wajib diisi',
+            'secret_code.size' => 'Kode Rahasia harus 6 digit',
+        ]);
+
+        $user = Auth::user();
+
+        // Find patient by MRN
+        $patient = Patient::where('medical_record_number', $validated['medical_record_number'])->first();
+
+        if (!$patient) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Nomor Rekam Medis tidak ditemukan.');
+        }
+
+        // Check if already claimed
+        if ($patient->is_claimed) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Rekam medis ini sudah di-claim oleh pengguna lain.');
+        }
+
+        // Verify secret code
+        if (!$patient->verifySecretCode($validated['secret_code'])) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Kode Rahasia tidak valid.');
+        }
+
+        // Claim the patient
+        $patient->claimByUser($user->id);
+
+        // Set as active patient in session
+        $request->session()->put('selected_patient_id', $patient->patient_id);
+
+        return redirect()
+            ->route('patient.dashboard')
+            ->with('success', "Berhasil! Rekam medis atas nama {$patient->full_name} telah ditambahkan ke akun Anda.");
+    }
 }

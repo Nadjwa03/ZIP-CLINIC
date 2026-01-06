@@ -20,6 +20,14 @@ class Speciality extends Model
     ];
     
     /**
+     * Get services under this speciality
+     */
+    public function services()
+    {
+        return $this->hasMany(Service::class, 'speciality_id', 'speciality_id');
+    }
+
+    /**
      * Get doctors with this speciality
      */
     public function doctors()

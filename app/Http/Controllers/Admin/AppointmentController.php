@@ -123,17 +123,40 @@ class AppointmentController extends Controller
             'complaint' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:500',
         ]);
-        
+
         DB::beginTransaction();
-        
+
         try {
             // Combine date and time
             $scheduledStart = Carbon::parse($validated['scheduled_date'] . ' ' . $validated['scheduled_time']);
-            
+
+            // Validate doctor availability
+            $doctor = Doctor::findOrFail($validated['doctor_user_id']);
+
+            if (!$doctor->isAvailableAt($scheduledStart)) {
+                DB::rollBack();
+                return back()->withErrors([
+                    'scheduled_time' => 'Dokter tidak praktek di waktu tersebut. Silakan pilih waktu yang sesuai dengan jadwal dokter.'
+                ])->withInput();
+            }
+
+            // Check if slot is already booked
+            $existingAppointment = Appointment::where('doctor_user_id', $validated['doctor_user_id'])
+                ->where('scheduled_start_at', $scheduledStart)
+                ->whereNotIn('status', ['CANCELLED'])
+                ->exists();
+
+            if ($existingAppointment) {
+                DB::rollBack();
+                return back()->withErrors([
+                    'scheduled_time' => 'Slot waktu ini sudah dibooking oleh pasien lain. Silakan pilih waktu lain.'
+                ])->withInput();
+            }
+
             // Get service to calculate end time
             $service = Service::findOrFail($validated['service_id']);
             $scheduledEnd = $scheduledStart->copy()->addMinutes($service->duration_minutes ?? 30);
-            
+
             // Create appointment
             $appointment = Appointment::create([
                 'patient_id' => $validated['patient_id'],
@@ -146,9 +169,9 @@ class AppointmentController extends Controller
                 'status' => 'BOOKED', // Auto-approved by admin
                 'booking_source' => 'WALK_IN', // Admin booking = WALK_IN
             ]);
-            
+
             DB::commit();
-            
+
             return redirect()->route('admin.appointments.index')
                 ->with('success', 'Appointment berhasil dibuat untuk pasien: ' . $appointment->patient->full_name);
                 
@@ -323,11 +346,28 @@ class AppointmentController extends Controller
     {
         $date = $request->get('date');
         $doctorId = $request->get('doctor_id');
-        
-        if (!$date) {
-            return response()->json(['error' => 'Date required'], 400);
+
+        if (!$date || !$doctorId) {
+            return response()->json(['error' => 'Date and doctor ID required'], 400);
         }
-        
+
+        // Get doctor
+        $doctor = Doctor::find($doctorId);
+
+        if (!$doctor) {
+            return response()->json(['error' => 'Doctor not found'], 404);
+        }
+
+        // Get available slots from doctor schedule (30 minutes per slot)
+        $availableSlots = $doctor->getAvailableSlots($date, 30);
+
+        if (empty($availableSlots)) {
+            return response()->json([
+                'slots' => [],
+                'message' => 'Dokter tidak praktek di hari ini'
+            ]);
+        }
+
         // Get existing appointments for the doctor on that date
         $existingAppointments = Appointment::where('doctor_user_id', $doctorId)
             ->whereDate('scheduled_start_at', $date)
@@ -337,22 +377,17 @@ class AppointmentController extends Controller
                 return Carbon::parse($datetime)->format('H:i');
             })
             ->toArray();
-        
-        // Generate time slots (08:00 - 17:00, every 30 minutes)
+
+        // Map slots with availability
         $slots = [];
-        $start = Carbon::parse($date . ' 08:00');
-        $end = Carbon::parse($date . ' 17:00');
-        
-        while ($start < $end) {
-            $timeString = $start->format('H:i');
+        foreach ($availableSlots as $slot) {
             $slots[] = [
-                'time' => $timeString,
-                'display' => $start->format('H:i'),
-                'available' => !in_array($timeString, $existingAppointments)
+                'time' => $slot['start'],
+                'display' => $slot['start'] . ' - ' . $slot['end'],
+                'available' => !in_array($slot['start'], $existingAppointments)
             ];
-            $start->addMinutes(30);
         }
-        
+
         return response()->json(['slots' => $slots]);
     }
 }

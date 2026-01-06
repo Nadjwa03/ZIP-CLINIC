@@ -75,12 +75,11 @@ return new class extends Migration
                 ->on('services')
                 ->nullOnDelete(); // Hapus service → null (preserve invoice history)
 
-            // ⚠️ COMMENTED: Table inventory_items belum ada
-            // Uncomment setelah create migration inventory_items
-            // $table->foreign('inventory_item_id')
-            //     ->references('inventory_item_id')
-            //     ->on('inventory_items')
-            //     ->nullOnDelete();
+            // Foreign key untuk inventory items
+            $table->foreign('inventory_item_id')
+                ->references('inventory_item_id')
+                ->on('inventory_items')
+                ->nullOnDelete(); // Hapus inventory item → null (preserve invoice history)
             
             // ==========================================
             // INDEXES

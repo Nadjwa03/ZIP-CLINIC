@@ -20,6 +20,10 @@ return new class extends Migration
             $table->decimal('price', 15, 2);
             $table->integer('duration_minutes');
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_public')->default(true)->comment('Can be booked by patients online');
+            $table->string('category', 50)->nullable()->comment('Service category for grouping');
+            $table->integer('display_order')->default(0)->comment('Order for display (lower = first)');
+            $table->string('icon', 50)->nullable()->comment('Icon/emoji for category');
             $table->timestamps();
 
             // Foreign Keys
@@ -32,6 +36,12 @@ return new class extends Migration
             $table->index('speciality_id');
             $table->index('is_active');
             $table->index('service_name');
+
+            // ⭐ NEW: Indexes for patient booking
+            $table->index('is_public');
+            $table->index('category');
+            $table->index(['is_public', 'is_active']); // Combo index for patient queries
+            $table->index(['category', 'display_order']); // For ordered category lists
         });
     }
 

@@ -20,16 +20,26 @@
 <!-- List Pasien Section (ALWAYS SHOW) -->
 <div class="mb-6">
         <div class="flex items-center justify-between mb-4">
-            <a href="{{ route('pasien.patients.index') }}" class="flex items-center text-gray-800 hover:text-[#6B4423] transition-colors">
+            <a href="{{ route('patient.patients.index') }}" class="flex items-center text-gray-800 hover:text-[#6B4423] transition-colors">
     <h3 class="text-lg font-bold">List Pasien</h3>
     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
     </svg>
 </a>
 
-        
-        <!-- Add Patient Button (Modal) -->
-        @include('components.patient-add-modal', ['iconOnly' => true])
+        <div class="flex gap-2">
+            <!-- Claim Patient Button -->
+            <!-- <a href="{{ route('patient.claim.form') }}"
+               class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Claim
+            </a> -->
+
+            <!-- Add Patient Button (Modal) -->
+            @include('components.patient-add-modal', ['iconOnly' => true])
+        </div>
         </div>
     
     @if(isset($patients) && $patients->isNotEmpty())
@@ -88,7 +98,7 @@
             @endforeach
             
             @if($patients->count() > 2)
-            <a href="{{ route('pasien.patients.index') }}" class="block text-center text-sm text-[#6B4423] hover:underline">
+            <a href="{{ route('patient.patients.index') }}" class="block text-center text-sm text-[#6B4423] hover:underline">
                 Lihat semua ({{ $patients->count() }} pasien)
             </a>
             @endif
@@ -106,36 +116,79 @@
 
 <!-- Reservasi Section (ALWAYS SHOW) -->
 <div class="mb-6">
-    <h3 class="text-lg font-bold text-gray-800 flex items-center mb-4">
-        Reservasi
-        <svg class="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-    </h3>
-    
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+            Reservasi
+        </h3>
+        <a href="{{ route('patient.appointments.index') }}" class="text-sm text-[#6B4423] font-semibold hover:underline">
+            Lihat Semua →
+        </a>
+    </div>
+
     @if(isset($upcomingAppointments) && $upcomingAppointments->isNotEmpty())
         <!-- Show Appointments -->
         <div class="space-y-3">
         @foreach($upcomingAppointments as $appointment)
-        <div class="bg-white rounded-lg p-4 border border-gray-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="font-semibold text-gray-800">{{ $appointment->service->name ?? 'Layanan' }}</p>
-                    
-                    @if($appointment->slot)
-                    <p class="text-sm text-gray-600">
-                        {{ \Carbon\Carbon::parse($appointment->slot->date)->format('d M Y') }}
-                        • {{ substr($appointment->slot->start_time, 0, 5) }} - {{ substr($appointment->slot->end_time, 0, 5) }}
-                    </p>
-                    @else
-                    <p class="text-sm text-gray-600">Tanggal belum ditentukan</p>
-                    @endif
+        <a href="{{ route('patient.appointments.show', $appointment->appointment_id) }}"
+           class="block bg-white rounded-lg p-4 border-l-4 hover:shadow-md transition-all
+                  {{ $appointment->status == 'BOOKED' ? 'border-blue-500' : '' }}
+                  {{ $appointment->status == 'CHECKED_IN' ? 'border-green-500' : '' }}
+                  {{ $appointment->status == 'COMPLETED' ? 'border-gray-400' : '' }}">
+
+            <!-- Header: Service & Status -->
+            <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800">{{ $appointment->service->service_name ?? 'Layanan' }}</p>
+                    <p class="text-xs text-gray-500">{{ $appointment->service->speciality->name ?? 'Layanan Umum' }}</p>
                 </div>
-                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                    {{ ucfirst(strtolower($appointment->status)) }}
+                <span class="px-2 py-1 text-xs font-bold rounded-full
+                            {{ $appointment->status == 'BOOKED' ? 'bg-blue-100 text-blue-700' : '' }}
+                            {{ $appointment->status == 'CHECKED_IN' ? 'bg-green-100 text-green-700' : '' }}
+                            {{ $appointment->status == 'COMPLETED' ? 'bg-gray-100 text-gray-700' : '' }}
+                            {{ $appointment->status == 'CANCELLED' ? 'bg-red-100 text-red-700' : '' }}">
+                    @switch($appointment->status)
+                        @case('BOOKED') Terjadwal @break
+                        @case('CHECKED_IN') Check-in @break
+                        @case('COMPLETED') Selesai @break
+                        @case('CANCELLED') Dibatalkan @break
+                        @default {{ $appointment->status }}
+                    @endswitch
                 </span>
             </div>
-        </div>
+
+            <!-- Doctor Info -->
+            <div class="flex items-center space-x-2 mb-3 pb-3 border-b border-gray-100">
+                <div class="w-8 h-8 bg-[#6B4423] rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {{ strtoupper(substr($appointment->doctor->user->name ?? 'D', 0, 1)) }}
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-800">{{ $appointment->doctor->user->name ?? 'Dokter' }}</p>
+                    <p class="text-xs text-gray-500">{{ $appointment->doctor->specialization ?? 'Dokter Gigi' }}</p>
+                </div>
+            </div>
+
+            <!-- Date & Time -->
+            <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center space-x-1 text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>{{ \Carbon\Carbon::parse($appointment->scheduled_start_at)->format('d M Y') }}</span>
+                </div>
+                <div class="flex items-center space-x-1 text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>{{ \Carbon\Carbon::parse($appointment->scheduled_start_at)->format('H:i') }}</span>
+                </div>
+            </div>
+
+            <!-- Price -->
+            <!-- <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                <span class="text-xs text-gray-500">Estimasi Biaya</span>
+                <span class="font-bold text-[#6B4423]">Rp {{ number_format($appointment->service->price, 0, ',', '.') }}</span>
+            </div> -->
+        </a>
         @endforeach
         </div>
     @else
@@ -148,7 +201,7 @@
             </div>
             <h4 class="font-bold text-gray-800 mb-2">Belum Ada Jadwal Reservasi</h4>
             <p class="text-gray-600 text-sm mb-4">Buat Reservasi Baru untuk Mengatur Jadwal Anda</p>
-            <a href="{{ route('pasien.appointments.create') }}" class="inline-block bg-[#6B4423] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#5A3A1E]">
+            <a href="{{ route('patient.appointments.create') }}" class="inline-block bg-[#6B4423] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#5A3A1E]">
                 Buat Pertemuan
             </a>
         </div>

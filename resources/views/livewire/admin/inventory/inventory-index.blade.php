@@ -1,10 +1,3 @@
-@extends('layouts.admin')
-
-@section('title', 'Inventory - Klinik ZIP')
-
-@section('content')
-    @livewire('admin.inventory.inventory-index')
-@endsection
 <div class="px-6 py-6">
     <!-- Header -->
     <div class="mb-6">
@@ -267,4 +260,216 @@
             {{ $items->links() }}
         </div>
     </div>
+
+    <!-- Add Item Modal -->
+    @if($showAddModal)
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" wire:click="$set('showAddModal', false)">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white" wire:click.stop>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Tambah Item Inventory</h3>
+                <button wire:click="$set('showAddModal', false)" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form wire:submit.prevent="saveItem">
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- SKU -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">SKU <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="SKU" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        @error('SKU') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Item <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Type -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipe <span class="text-red-500">*</span></label>
+                        <select wire:model="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="MEDICINE">Obat</option>
+                            <option value="EQUIPMENT">Alat Medis</option>
+                            <option value="CONSUMABLE">Habis Pakai</option>
+                            <option value="OTHER">Lainnya</option>
+                        </select>
+                        @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                        <input type="text" wire:model="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Antibiotik">
+                        @error('category') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Unit -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Satuan <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="unit" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="pcs, box, tablet" required>
+                        @error('unit') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Purchase Price -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Beli <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="purchase_price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" step="0.01" required>
+                        @error('purchase_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Sell Price -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="sell_price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" step="0.01" required>
+                        @error('sell_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Quantity -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Stok Awal <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="qty_on_hand" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" required>
+                        @error('qty_on_hand') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Min Stock -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Stok <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="min_stock" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" required>
+                        @error('min_stock') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Vendor Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Vendor</label>
+                        <input type="text" wire:model="vendor_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nama supplier">
+                        @error('vendor_name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                        <textarea wire:model="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Deskripsi produk"></textarea>
+                        @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" wire:click="$set('showAddModal', false)" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    <!-- Edit Item Modal -->
+    @if($showEditModal)
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" wire:click="$set('showEditModal', false)">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white" wire:click.stop>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Edit Item Inventory</h3>
+                <button wire:click="$set('showEditModal', false)" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form wire:submit.prevent="updateItem">
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Same fields as Add Modal -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">SKU <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="SKU" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        @error('SKU') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Item <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipe <span class="text-red-500">*</span></label>
+                        <select wire:model="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="MEDICINE">Obat</option>
+                            <option value="EQUIPMENT">Alat Medis</option>
+                            <option value="CONSUMABLE">Habis Pakai</option>
+                            <option value="OTHER">Lainnya</option>
+                        </select>
+                        @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                        <input type="text" wire:model="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        @error('category') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Satuan <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="unit" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        @error('unit') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Beli <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="purchase_price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" step="0.01" required>
+                        @error('purchase_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="sell_price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" step="0.01" required>
+                        @error('sell_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Stok <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="qty_on_hand" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" required>
+                        @error('qty_on_hand') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Stok <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="min_stock" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" min="0" required>
+                        @error('min_stock') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Vendor</label>
+                        <input type="text" wire:model="vendor_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        @error('vendor_name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                        <textarea wire:model="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" wire:click="$set('showEditModal', false)" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 </div>
