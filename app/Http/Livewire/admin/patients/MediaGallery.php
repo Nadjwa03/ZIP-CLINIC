@@ -61,14 +61,14 @@ class MediaGallery extends Component
             
             // Determine storage path based on media type
             $category = $this->getCategoryFromType($this->mediaType);
-            $storagePath = 'patient-media/' . $this->patient->id . '/' . $category;
+            $storagePath = 'patient-media/' . $this->patient->patient_id . '/' . $category;
             
             // Store file
             $path = $file->storeAs($storagePath, $filename, 'public');
 
             // Create database record
             PatientMedia::create([
-                'patient_id' => $this->patient->id,
+                'patient_id' => $this->patient->patient_id,
                 'visit_id' => $this->visitId,
                 'media_type' => $this->mediaType,
                 'path' => $path,

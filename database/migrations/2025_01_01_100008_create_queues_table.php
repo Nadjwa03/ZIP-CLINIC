@@ -9,9 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('queues', function (Blueprint $table) {
-            // ==========================================
-            // PRIMARY KEY - Sesuai ERD
-            // ==========================================
+
+            // PRIMARY KEY
             $table->id('queue_id');
             
             // ==========================================
@@ -42,10 +41,10 @@ return new class extends Migration
             $table->enum('status', [
                 'WAITING',      // Menunggu dipanggil
                 'CALLED',       // ✨ SARAN: Sudah dipanggil tapi belum masuk ruangan
-                'IN_TREATMENT', // Sedang ditangani dokter
-                'DONE',         // Selesai treatment
-                'CANCELLED',    // Dibatalkan
-                'SKIPPED'       // ✨ SARAN: Pasien tidak hadir saat dipanggil
+                'IN_TREATMENT',
+                'DONE',         
+                'CANCELLED',    
+                'SKIPPED'       
             ])->default('WAITING');
             
             $table->text('complaint')->nullable();

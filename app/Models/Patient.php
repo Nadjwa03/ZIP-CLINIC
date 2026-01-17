@@ -43,6 +43,19 @@ class Patient extends Model
         'claimed_at' => 'datetime',
     ];
 
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_user_id', 'id');
+    }
+
+    /**
+     * Get name accessor (alias for full_name for compatibility)
+     */
+    public function getNameAttribute()
+    {
+        return $this->full_name;
+    }
+
     /**
      * Get age from date of birth
      */
@@ -51,7 +64,7 @@ class Patient extends Model
         if (!$this->date_of_birth) {
             return null;
         }
-        
+
         return Carbon::parse($this->date_of_birth)->age;
     }
 

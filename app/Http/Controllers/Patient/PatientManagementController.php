@@ -99,14 +99,14 @@ class PatientManagementController extends Controller
                 'medical_history' => $validated['medical_history'] ?? null,
                 'is_active' => true,
             ]);
-            
+
             // Set as selected patient in session
-            $request->session()->put('selected_patient_id', $patient->id);
-            
+            $request->session()->put('selected_patient_id', $patient->patient_id);
+
             DB::commit();
-            
+
             // Redirect to patients list with success message
-            return redirect()->route('pasien.patients.index')
+            return redirect()->route('patient.patients.index')
                 ->with('success', 'Pasien berhasil ditambahkan!');
             
         } catch (\Exception $e) {
@@ -198,7 +198,7 @@ class PatientManagementController extends Controller
             
             DB::commit();
             
-            return redirect()->route('pasien.patients.index')
+            return redirect()->route('patient.patients.index')
                 ->with('success', 'Data pasien berhasil diupdate');
             
         } catch (\Exception $e) {
@@ -253,13 +253,13 @@ class PatientManagementController extends Controller
                 'owner_user_id' => $user->id,
                 'claimed_at' => now(),
             ]);
-            
+
             // Set as selected patient in session
-            $request->session()->put('selected_patient_id', $patient->id);
-            
+            $request->session()->put('selected_patient_id', $patient->patient_id);
+
             DB::commit();
-            
-            return redirect()->route('pasien.patients.index')
+
+            return redirect()->route('patient.patients.index')
                 ->with('success', 'Profil pasien berhasil diklaim! Selamat datang, ' . $patient->full_name);
             
         } catch (\Exception $e) {

@@ -29,15 +29,35 @@ class Appointment extends Model
     protected $fillable = [
         'patient_id',
         'service_id',
-        'doctor_user_id',      
+        'doctor_user_id',
         'slot_id',
-        'scheduled_start_at',  
-        'scheduled_end_at',    
+        'scheduled_start_at',
+        'scheduled_end_at',
+        'queue_number',
+        'queue_date',
         'complaint',
         'status',
         'booking_source',
         'cancel_reason',
         'cancelled_at',
+        'notes',
+        // Medical Record Fields
+        'examination_notes',
+        'diagnosis',
+        'treatment_plan',
+        'prescription',
+        'follow_up_date',
+        'doctor_notes',
+        // Vital Signs
+        'blood_pressure',
+        'temperature',
+        'heart_rate',
+        'respiratory_rate',
+        'weight',
+        'height',
+        // Treatment Timestamps
+        'treatment_started_at',
+        'treatment_completed_at',
     ];
 
 
@@ -463,5 +483,24 @@ class Appointment extends Model
         }
 
         return $query->exists();
+    }
+
+    /**
+     * Generate queue number untuk tanggal dan dokter tertentu
+     * Nomor antrian berdasarkan URUTAN BOOKING, bukan urutan check-in
+     *
+     * @param int $doctorUserId
+     * @param string $date Format: Y-m-d
+     * @return int
+     */
+    public static function generateQueueNumber($doctorUserId, $date)
+    {
+        // Get last queue number untuk dokter dan tanggal tersebut
+        $lastAppointment = self::where('doctor_user_id', $doctorUserId)
+            ->where('queue_date', $date)
+            ->orderByDesc('queue_number')
+            ->first();
+
+        return ($lastAppointment?->queue_number ?? 0) + 1;
     }
 }

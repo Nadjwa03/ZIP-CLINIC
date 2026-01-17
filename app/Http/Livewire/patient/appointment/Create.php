@@ -401,14 +401,20 @@ class Create extends Component
                 return;
             }
             
+            // Generate queue number berdasarkan urutan booking
+            $queueNumber = Appointment::generateQueueNumber($this->doctorId, $this->selectedDate);
+            $queueDate = Carbon::parse($this->selectedDate)->format('Y-m-d');
+
             // Create appointment
             $appointment = Appointment::create([
                 'patient_id' => $this->patientId,
                 'service_id' => $this->serviceId,
                 'doctor_user_id' => $this->doctorId,
-                'booking_source' => 'ONLINE',
+                'booking_source' => 'WEB',
                 'scheduled_start_at' => $scheduledStart,
                 'scheduled_end_at' => $scheduledEnd,
+                'queue_number' => $queueNumber,
+                'queue_date' => $queueDate,
                 'complaint' => $this->complaint,
                 'status' => 'BOOKED',
             ]);
@@ -464,7 +470,6 @@ class Create extends Component
     
     public function render()
     {
-        return view('livewire.pasien.appointments.create')
-            ->layout('layouts.patient');
+        return view('livewire.pasien.appointments.create');
     }
 }

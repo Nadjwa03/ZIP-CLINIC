@@ -11,6 +11,8 @@ class Doctor extends Model
 
     protected $table = 'doctors';
     protected $primaryKey = 'doctor_user_id';
+    public $incrementing = false; // Primary key is not auto-increment
+    protected $keyType = 'int';
 
     protected $fillable = [
         'doctor_user_id',
@@ -98,10 +100,15 @@ class Doctor extends Model
     /**
      * Scope to filter by speciality
      */
-    public function scopeOfSpeciality($query, $speciality)
+   public function scopeOfSpeciality($query, $speciality)
     {
-        return $query->where('speciality', $speciality);
+        $specialityId = $speciality instanceof \App\Models\Speciality
+            ? $speciality->speciality_id
+            : $speciality;
+
+        return $query->where('speciality_id', $specialityId);
     }
+
 
     /**
      * Scope to get doctors for landing page

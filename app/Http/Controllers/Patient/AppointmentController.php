@@ -90,6 +90,11 @@ class AppointmentController extends Controller
             ->where('owner_user_id', $user->id)
             ->firstOrFail();
 
+        // Get all patients belonging to this user
+        $patients = Patient::where('owner_user_id', $user->id)
+            ->orderBy('full_name')
+            ->get();
+
         // Get active services
         $services = Service::where('is_active', true)
             ->orderBy('service_name')
@@ -101,6 +106,7 @@ class AppointmentController extends Controller
             ->get();
 
         return view('pasien.appointments.create', compact(
+            'patients',
             'services',
             'doctors',
             'patient'
@@ -233,6 +239,10 @@ class AppointmentController extends Controller
             // Parse datetime
             $scheduledStart = Carbon::parse($request->date . ' ' . $request->start_time);
             $scheduledEnd = $scheduledStart->copy()->addMinutes($durationMinutes);
+
+            // Generate queue number otomatis berdasarkan urutan booking
+            $queueNumber = Appointment::generateQueueNumber($request->doctor_id, $request->date);
+            $queueDate = Carbon::parse($request->date)->format('Y-m-d');
 
             // Check for conflicts
             $conflict = Appointment::where('doctor_user_id', $request->doctor_id)

@@ -15,7 +15,8 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\DoctorController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\AppointmentController; 
+use App\Http\Controllers\Admin\AppointmentController;
+use App\Http\Controllers\Admin\InvoiceController; 
 
 // ========================================
 // PATIENT AREA CONTROLLERS (UPDATED!)
@@ -25,7 +26,6 @@ use App\Http\Controllers\Patient\AppointmentController as PatientAppointmentCont
 use App\Http\Controllers\Patient\PatientManagementController;
 use App\Http\Controllers\Patient\MedicalRecordController;
 use App\Http\Controllers\Patient\TransactionController;
-use App\Http\Controllers\Patient\VoucherController;
 use App\Http\Controllers\Patient\ProfileController;
 
 // ========================================
@@ -93,9 +93,9 @@ Route::middleware('auth')->group(function () {
         // Appointments
         Route::get('appointments', [PatientAppointmentController::class, 'index'])->name('appointments.index');
         Route::get('appointments/create', [PatientAppointmentController::class, 'create'])->name('appointments.create');
+        Route::get('appointments/slots', [PatientAppointmentController::class, 'getSlots'])->name('appointments.slots'); // MUST be before {appointment}
         Route::post('appointments', [PatientAppointmentController::class, 'store'])->name('appointments.store');
         Route::get('appointments/{appointment}', [PatientAppointmentController::class, 'show'])->name('appointments.show');
-        Route::get('appointments/slots', [PatientAppointmentController::class, 'getSlots'])->name('appointments.slots');
         Route::post('appointments/{appointment}/cancel', [PatientAppointmentController::class, 'cancel'])->name('appointments.cancel');
         // Route::get('/available-slots', [AppointmentController::class, 'getAvailableSlots'])->name('available-slots');
         // Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('show');
@@ -130,10 +130,46 @@ Route::middleware('auth')->group(function () {
         Route::post('settings/photo', [ProfileController::class, 'updatePhoto'])->name('settings.photo');
     });
 
-    // Dashboard (Admin/Doctor) - Your existing dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->middleware('check_role:admin,doctor')
-        ->name('dashboard');
+    // Dashboard route removed - Admin uses /admin, Doctor uses /doctor
+    // Route::get('/dashboard', [DashboardController::class, 'index'])
+    //     ->middleware('check_role:admin,doctor')
+    //     ->name('dashboard');
+});
+
+// ========================================
+// DOCTOR PANEL ROUTES
+// ========================================
+Route::prefix('doctor')->name('doctor.')->middleware(['auth', 'check_role:doctor'])->group(function () {
+
+    // Doctor Dashboard
+    Route::get('/', [\App\Http\Controllers\Doctor\DashboardController::class, 'index'])->name('dashboard');
+
+    // Appointments
+    Route::get('/appointments', [\App\Http\Controllers\Doctor\AppointmentController::class, 'index'])->name('appointments.index');
+    Route::get('/appointments/{appointment}', [\App\Http\Controllers\Doctor\AppointmentController::class, 'show'])->name('appointments.show');
+    Route::post('/appointments/{appointment}/update-status', [\App\Http\Controllers\Doctor\AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
+
+    // Schedule
+    Route::get('/schedule', function() {
+        return view('doctor.schedule');
+    })->name('schedule');
+
+    // Profile
+    Route::get('/profile', function() {
+        return view('doctor.profile');
+    })->name('profile');
+
+    // Calendar
+    Route::get('/calendar', [\App\Http\Controllers\Doctor\CalendarController::class, 'index'])->name('calendar');
+
+    // Patients
+    Route::get('/patients', [\App\Http\Controllers\Doctor\PatientController::class, 'index'])->name('patients.index');
+    Route::get('/patients/{patient}', [\App\Http\Controllers\Doctor\PatientController::class, 'show'])->name('patients.show');
+
+    // Settings
+    Route::get('/settings', function() {
+        return view('doctor.settings');
+    })->name('settings');
 });
 
 // ========================================
@@ -200,6 +236,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
         })->name('edit');
     });
 
+    // ==========================================
+    // INVOICE ROUTES
+    // ==========================================
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        // Index menggunakan Livewire component (dengan tab pending & invoices)
+        Route::get('/', function () {
+            return view('admin.invoices.livewire-index');
+        })->name('index');
+
+        // Actions menggunakan Controller
+        Route::get('/create', [InvoiceController::class, 'create'])->name('create');
+        Route::post('/store', [InvoiceController::class, 'store'])->name('store');
+        Route::get('/{invoice}', [InvoiceController::class, 'show'])->name('show');
+        Route::post('/{invoice}/payment', [InvoiceController::class, 'updatePayment'])->name('update-payment');
+    });
 
     // ========================================
     // DOCTORS MANAGEMENT (Master Data)
@@ -239,9 +290,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
     });
 
     // ========================================
-    // MASTER DATA: SPECIALITY
+    // MASTER DATA: specialities
     // ========================================
-    Route::prefix('speciality')->name('speciality.')->group(function () {
+    Route::prefix('specialities')->name('specialities.')->group(function () {
         Route::get('/', function () {
             return view('admin.speciality.index');
         })->name('index');
@@ -264,47 +315,65 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'check_role:admin'])
     // ADMIN PATIENT MANAGEMENT
     // ========================================
 
+
+// ========================================
+// ADMIN PATIENT MANAGEMENT
+// ========================================
+
+Route::prefix('patients')->name('patients.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\PatientController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Admin\PatientController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Admin\PatientController::class, 'store'])->name('store');
+    Route::get('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'show'])->name('show');
+    Route::get('/{patient}/edit', [App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('edit');
+    Route::put('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'update'])->name('update');
+    Route::patch('/{patient}/toggle-status', [App\Http\Controllers\Admin\PatientController::class, 'toggleStatus'])->name('toggle-status');
+    Route::post('/{patient}/regenerate-code', [App\Http\Controllers\Admin\PatientController::class, 'regenerateSecretCode'])->name('regenerate-code');
+    Route::delete('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('destroy');
+});
+
     // ========================================
     // PATIENT MANAGEMENT (ADMIN) ← ADD THIS SECTION
     // ========================================
 
-    Route::prefix('patients')->name('patients.')->group(function () {
-        // ========================================
-        // CHECK-IN (Livewire)
-        // ========================================
-        Route::get('/check-in', function () {
-            return view('admin.checkin.index');
-        })->name('checkin.index');
 
-                // ========================================
-        // PATIENT APPOINTMENT ROUTES
-        // ========================================
-        // Tambahkan di dalam Route::prefix('pasien')->group()
-        Route::prefix('appointments')->name('appointments.')->group(function () {
-            Route::get('/', [App\Http\Controllers\Patient\AppointmentController::class, 'index'])->name('index');
-            Route::get('/create', [App\Http\Controllers\Patient\AppointmentController::class, 'create'])->name('create');
-            Route::post('/', [App\Http\Controllers\Patient\AppointmentController::class, 'store'])->name('store');
-            Route::get('/{appointment}', [App\Http\Controllers\Patient\AppointmentController::class, 'show'])->name('show');
-            Route::delete('/{appointment}/cancel', [App\Http\Controllers\Patient\AppointmentController::class, 'cancel'])->name('cancel');
+//     Route::prefix('patients')->name('patients.')->group(function () {
+//         // ========================================
+//         // CHECK-IN (Livewire)
+//         // ========================================
+//         Route::get('/check-in', function () {
+//             return view('admin.checkin.index');
+//         })->name('checkin.index');
+
+//                 // ========================================
+//         // PATIENT APPOINTMENT ROUTES
+//         // ========================================
+//         // Tambahkan di dalam Route::prefix('pasien')->group()
+//         Route::prefix('appointments')->name('appointments.')->group(function () {
+//             Route::get('/', [App\Http\Controllers\Patient\AppointmentController::class, 'index'])->name('index');
+//             Route::get('/create', [App\Http\Controllers\Patient\AppointmentController::class, 'create'])->name('create');
+//             Route::post('/', [App\Http\Controllers\Patient\AppointmentController::class, 'store'])->name('store');
+//             Route::get('/{appointment}', [App\Http\Controllers\Patient\AppointmentController::class, 'show'])->name('show');
+//             Route::delete('/{appointment}/cancel', [App\Http\Controllers\Patient\AppointmentController::class, 'cancel'])->name('cancel');
             
-            // AJAX Routes
-            Route::get('/available-slots', [App\Http\Controllers\Patient\AppointmentController::class, 'getSlots'])->name('get-slots');
-        });
-        // ========================================
-        // QUEUE MANAGEMENT (Livewire)
-        // ========================================
-        Route::get('/queue', function () {
-            return view('admin.queue.index');
-        })->name('queue.index');
-        Route::get('/', [App\Http\Controllers\Admin\PatientController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\Admin\PatientController::class, 'create'])->name('create');  // ← NEW
-        Route::post('/', [App\Http\Controllers\Admin\PatientController::class, 'store'])->name('store');  // ← NEW
-        Route::get('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'show'])->name('show');
-        Route::get('/{patient}/edit', [App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('edit');
-        Route::put('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'update'])->name('update');
-        Route::patch('/{patient}/toggle-status', [App\Http\Controllers\Admin\PatientController::class, 'toggleStatus'])->name('toggle-status');
-        Route::post('/{patient}/regenerate-code', [App\Http\Controllers\Admin\PatientController::class, 'regenerateSecretCode'])->name('regenerate-code');
-        Route::delete('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('destroy');
-});
+//             // AJAX Routes
+//             Route::get('/available-slots', [App\Http\Controllers\Patient\AppointmentController::class, 'getSlots'])->name('get-slots');
+//         });
+//         // ========================================
+//         // QUEUE MANAGEMENT (Livewire)
+//         // ========================================
+//         Route::get('/queue', function () {
+//             return view('admin.queue.index');
+//         })->name('queue.index');
+//         Route::get('/', [App\Http\Controllers\Admin\PatientController::class, 'index'])->name('index');
+//         Route::get('/create', [App\Http\Controllers\Admin\PatientController::class, 'create'])->name('create');  // ← NEW
+//         Route::post('/', [App\Http\Controllers\Admin\PatientController::class, 'store'])->name('store');  // ← NEW
+//         Route::get('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'show'])->name('show');
+//         Route::get('/{patient}/edit', [App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('edit');
+//         Route::put('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'update'])->name('update');
+//         Route::patch('/{patient}/toggle-status', [App\Http\Controllers\Admin\PatientController::class, 'toggleStatus'])->name('toggle-status');
+//         Route::post('/{patient}/regenerate-code', [App\Http\Controllers\Admin\PatientController::class, 'regenerateSecretCode'])->name('regenerate-code');
+//         Route::delete('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('destroy');
+// });
     Route::get('/pasien', fn () => 'halaman pasien (admin)')->name('pasien');
 });

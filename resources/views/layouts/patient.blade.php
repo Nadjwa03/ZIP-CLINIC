@@ -11,8 +11,6 @@
     <!-- Alpine.js for Modal -->
     <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v3.x.x/dist/cdn.min.js" defer></script>
     
-    <!-- Alpine.js for Modal -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         /* Brown Theme Colors */
         :root {
@@ -129,17 +127,5 @@
     </script>
     
     @stack('scripts')
-<script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('patient-sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    
-    // Toggle sidebar
-    sidebar.classList.toggle('-translate-x-full');
-    
-    // Toggle overlay
-    overlay.classList.toggle('hidden');
-}
-</script>
 </body>
 </html>

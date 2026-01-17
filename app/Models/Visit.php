@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Visit extends Model
 {
+    protected $primaryKey = 'visit_id';
+
     protected $fillable = [
         'appointment_id',
         'queue_id',
@@ -20,6 +22,7 @@ class Visit extends Model
         'objective',
         'assessment',
         'plan',
+        'notes',
         'follow_up_at',
     ];
 
@@ -47,7 +50,7 @@ class Visit extends Model
 
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(Patient::class, 'patient_id', 'patient_id');
     }
 
     public function doctor(): BelongsTo
@@ -55,9 +58,22 @@ class Visit extends Model
         return $this->belongsTo(User::class, 'doctor_user_id');
     }
 
+    /**
+ * Get the user account of the doctor (if needed)
+ */
+    public function doctorUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'doctor_user_id', 'id');
+    }
+
     public function procedures(): HasMany
     {
         return $this->hasMany(VisitProcedure::class);
+    }
+
+    public function details(): HasMany
+    {
+        return $this->hasMany(VisitDetail::class, 'visit_id');
     }
 
     public function media(): HasMany
@@ -67,7 +83,7 @@ class Visit extends Model
 
     public function invoice(): HasOne
     {
-        return $this->hasOne(Invoice::class);
+        return $this->hasOne(Invoice::class, 'visit_id', 'visit_id');
     }
 
     // Scopes
@@ -151,6 +167,36 @@ class Visit extends Model
         $this->update([
             'status' => self::STATUS_FOLLOW_UP,
             'follow_up_at' => $date,
+        ]);
+    }
+
+    /**
+     * Add detail perawatan per-gigi ke visit ini
+     */
+    public function addDetail(array $data)
+    {
+        return $this->details()->create([
+            'tooth_codes' => $data['tooth_codes'] ?? null,
+            'service_id' => $data['service_id'] ?? null,
+            'diagnosis_note' => $data['diagnosis_note'] ?? null,
+            'treatment_note' => $data['treatment_note'] ?? null,
+            'remarks' => $data['remarks'] ?? null,
+            'entered_by' => $data['entered_by'] ?? \Auth::id(),
+        ]);
+    }
+
+    /**
+     * Update SOAP data untuk visit ini
+     */
+    public function updateSOAP(array $soapData)
+    {
+        return $this->update([
+            'subjective' => $soapData['subjective'] ?? $this->subjective,
+            'objective' => $soapData['objective'] ?? $this->objective,
+            'assessment' => $soapData['assessment'] ?? $this->assessment,
+            'plan' => $soapData['plan'] ?? $this->plan,
+            'notes' => $soapData['notes'] ?? $this->notes,
+            'follow_up_at' => $soapData['follow_up_at'] ?? $this->follow_up_at,
         ]);
     }
 }

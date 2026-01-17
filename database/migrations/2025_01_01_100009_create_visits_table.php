@@ -30,7 +30,8 @@ return new class extends Migration
             $table->text('objective')->nullable();   // O - Pemeriksaan fisik
             $table->text('assessment')->nullable();  // A - Diagnosis
             $table->text('plan')->nullable();        // P - Rencana treatment
-            
+            $table->text('notes')->nullable();       // Catatan tambahan dokter
+
             $table->timestamp('follow_up_at')->nullable();
             $table->timestamps();
 

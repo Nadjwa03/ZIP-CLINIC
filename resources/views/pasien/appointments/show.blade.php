@@ -69,8 +69,8 @@
             </svg>
             <div class="flex-1">
                 <p class="text-sm text-gray-500">Tanggal & Waktu</p>
-                <p class="font-semibold text-gray-800">{{ $appointment->slot->slot_date->format('l, d F Y') }}</p>
-                <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($appointment->slot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($appointment->slot->end_time)->format('H:i') }} WIB</p>
+                <p class="font-semibold text-gray-800">{{ \Carbon\Carbon::parse($appointment->scheduled_start_at)->translatedFormat('l, d F Y') }}</p>
+                <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($appointment->scheduled_start_at)->format('H:i') }} - {{ \Carbon\Carbon::parse($appointment->scheduled_end_at)->format('H:i') }} WIB</p>
             </div>
         </div>
         
@@ -81,7 +81,7 @@
             </svg>
             <div class="flex-1">
                 <p class="text-sm text-gray-500">Layanan</p>
-                <p class="font-semibold text-gray-800">{{ $appointment->service->name }}</p>
+                <p class="font-semibold text-gray-800">{{ $appointment->service->service_name }}</p>
                 <p class="text-sm text-gray-600">Durasi: {{ $appointment->service->duration_minutes }} menit</p>
                 <p class="text-sm font-semibold text-[#6B4423] mt-1">Rp {{ number_format($appointment->service->price, 0, ',', '.') }}</p>
             </div>
@@ -90,17 +90,16 @@
         <!-- Doctor -->
         <div class="flex items-start space-x-3 pb-4 border-b border-gray-200">
             <div class="w-12 h-12 bg-[#6B4423] rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {{ strtoupper(substr($appointment->assignedDoctor->name ?? $appointment->preferredDoctor->name ?? 'D', 0, 1)) }}
+                {{ strtoupper(substr($appointment->doctor->user->name ?? 'D', 0, 1)) }}
             </div>
             <div class="flex-1">
                 <p class="text-sm text-gray-500">Dokter</p>
-                <p class="font-semibold text-gray-800">{{ $appointment->assignedDoctor->name ?? $appointment->preferredDoctor->name ?? 'Belum ditentukan' }}</p>
-                @if($appointment->assignedDoctor)
-                <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded mt-1">Sudah Ditugaskan</span>
-                @elseif($appointment->preferredDoctor)
-                <span class="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded mt-1">Preferensi Anda</span>
+                <p class="font-semibold text-gray-800">{{ $appointment->doctor->user->name ?? 'Belum ditentukan' }}</p>
+                @if($appointment->doctor)
+                    <p class="text-sm text-gray-600">{{ $appointment->doctor->speciality->speciality_name ?? 'Dokter Umum' }}</p>
+                    <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded mt-1">Sudah Ditugaskan</span>
                 @else
-                <span class="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded mt-1">Akan Ditentukan Klinik</span>
+                    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded mt-1">Akan Ditentukan Klinik</span>
                 @endif
             </div>
         </div>
@@ -162,25 +161,27 @@
 @endif
 
 <!-- Queue Number (if checked in) -->
-@if($appointment->queue)
+@if($appointment->status == 'CHECKED_IN' || $appointment->status == 'IN_TREATMENT')
 <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
     <h3 class="font-bold text-gray-800 mb-3 flex items-center">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
         </svg>
-        Nomor Antrian
+        Status Appointment
     </h3>
     <div class="text-center bg-gradient-to-r from-[#6B4423] to-[#5A3A1E] rounded-lg p-6">
-        <p class="text-white text-sm mb-2">Nomor Antrian Anda</p>
-        <p class="text-white text-6xl font-bold">{{ str_pad($appointment->queue->queue_number, 3, '0', STR_PAD_LEFT) }}</p>
-        <p class="text-white text-sm mt-2">Status: {{ $appointment->queue->status }}</p>
+        <p class="text-white text-sm mb-2">Status Anda</p>
+        <p class="text-white text-3xl font-bold">{{ $appointment->status }}</p>
+        @if($appointment->treatment_started_at)
+            <p class="text-white text-sm mt-2">Mulai: {{ \Carbon\Carbon::parse($appointment->treatment_started_at)->format('H:i') }}</p>
+        @endif
     </div>
 </div>
 @endif
 
 <!-- Actions -->
 <div class="space-y-3 mb-6">
-    @if(in_array($appointment->status, ['BOOKED', 'APPROVED']))
+    @if(in_array($appointment->status, ['BOOKED', 'CHECKED_IN']))
     <!-- Cancel Button -->
     <button onclick="confirmCancel()" class="w-full bg-red-500 text-white py-3 rounded-lg font-bold hover:bg-red-600 flex items-center justify-center space-x-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,8 +190,8 @@
         <span>Batalkan Janji Temu</span>
     </button>
     @endif
-    
-    @if($appointment->status == 'APPROVED')
+
+    @if($appointment->status == 'BOOKED')
     <!-- Reschedule Button -->
     <a href="{{ route('patient.appointments.create') }}" class="block w-full bg-blue-500 text-white text-center py-3 rounded-lg font-bold hover:bg-blue-600">
         Reschedule
@@ -238,7 +239,7 @@ function confirmCancel() {
     if (confirm('Apakah Anda yakin ingin membatalkan janji temu ini?')) {
         const reason = prompt('Alasan pembatalan (opsional):');
         
-        fetch(`/pasien/appointments/{{ $appointment->id }}/cancel`, {
+        fetch(`/pasien/appointments/{{ $appointment->appointment_id }}/cancel`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

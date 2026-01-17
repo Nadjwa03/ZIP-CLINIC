@@ -48,4 +48,52 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the doctor profile associated with this user
+     */
+    public function doctor()
+    {
+        return $this->hasOne(Doctor::class, 'doctor_user_id', 'id');
+    }
+
+    /**
+     * Get all patient profiles owned by this user (bisa punya banyak - keluarga)
+     */
+    public function patients()
+    {
+        return $this->hasMany(Patient::class, 'owner_user_id', 'id');  // ✅ BENAR
+    }
+
+    /**
+     * Get the primary/first patient profile (untuk backward compatibility)
+     */
+    public function patient()
+    {
+        return $this->hasOne(Patient::class, 'owner_user_id', 'id');  // ✅ BENAR
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is doctor
+     */
+    public function isDoctor(): bool
+    {
+        return $this->role === 'doctor';
+    }
+
+    /**
+     * Check if user is patient
+     */
+    public function isPatient(): bool
+    {
+        return $this->role === 'patient';
+    }
 }

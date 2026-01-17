@@ -216,8 +216,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <div>
-                <p class="text-blue-800 font-medium mb-1">Tips Manajemen Antrian</p>
+                <p class="text-blue-800 font-medium mb-1">Informasi Antrian</p>
                 <ul class="text-blue-700 text-sm space-y-1">
+                    <li>• <strong>Nomor antrian</strong> sudah di-assign saat booking (urutan booking, bukan urutan check-in)</li>
                     <li>• <strong>Panggil</strong> untuk memulai treatment pasien</li>
                     <li>• <strong>Selesai</strong> untuk menandai treatment sudah selesai</li>
                     <li>• <strong>Batal</strong> jika pasien tidak datang atau membatalkan</li>

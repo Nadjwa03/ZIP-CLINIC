@@ -21,13 +21,18 @@ class Index extends Component
     {
         $query = Appointment::with(['patient', 'doctor.user', 'service'])
             ->where('status', 'BOOKED')
-            ->whereDate('scheduled_start_at', today())
-            ->orderBy('scheduled_start_at', 'asc');
+            ->where(function($q) {
+                // Tampilkan appointment hari ini dan besok
+                $q->whereDate('scheduled_start_at', '>=', today())
+                  ->whereDate('scheduled_start_at', '<=', today()->addDay());
+            })
+            ->orderBy('scheduled_start_at', 'asc')
+            ->orderBy('queue_number', 'asc');
 
         // Search
         if ($this->search) {
             $query->whereHas('patient', function($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
+                $q->where('full_name', 'like', '%' . $this->search . '%')
                   ->orWhere('medical_record_number', 'like', '%' . $this->search . '%');
             });
         }
@@ -42,16 +47,17 @@ class Index extends Component
         // Get doctors for filter
         $doctors = Doctor::where('is_active', true)->get();
 
-        // Statistics
+        // Statistics - untuk hari ini dan besok
         $stats = [
             'waiting_checkin' => Appointment::where('status', 'BOOKED')
-                ->whereDate('scheduled_start_at', today())
+                ->where('scheduled_start_at', '>=', today())
+                ->where('scheduled_start_at', '<=', today()->addDay())
                 ->count(),
             'checked_in' => Appointment::where('status', 'CHECKED_IN')
-                ->whereDate('scheduled_start_at', today())
+                ->whereDate('scheduled_start_at', '>=', today()->subDay())
                 ->count(),
-            'in_queue' => Queue::whereDate('queue_date', today())
-                ->where('status', 'WAITING')
+            'in_queue' => Queue::whereDate('queue_date', '>=', today()->subDay())
+                ->whereIn('status', ['WAITING', 'IN_TREATMENT'])
                 ->count(),
         ];
 
@@ -88,23 +94,30 @@ class Index extends Component
                 return;
             }
 
-            // Pastikan queue_date hanya date (tanpa jam)
-            $queueDate = today()->toDateString();
+            // Gunakan queue_number yang sudah di-assign saat booking
+            // Jika belum ada, generate queue number baru
+            $queueDate = $appointment->queue_date ?? $appointment->scheduled_start_at->toDateString();
 
-            // Get next queue number for today and this doctor
-            $lastQueue = Queue::whereDate('queue_date', $queueDate)
-                ->where('doctor_user_id', $appointment->doctor_user_id)
-                ->orderBy('queue_number', 'desc')
-                ->first();
+            if ($appointment->queue_number) {
+                // Gunakan nomor yang sudah di-assign
+                $queueNumber = $appointment->queue_number;
+            } else {
+                // Generate queue number baru
+                $queueNumber = Queue::getNextNumber($queueDate, $appointment->doctor_user_id);
 
-            $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
+                // Update appointment dengan queue number yang baru
+                $appointment->update([
+                    'queue_number' => $queueNumber,
+                    'queue_date' => $queueDate,
+                ]);
+            }
 
-            // Create queue
+            // Create queue dengan nomor yang sama
             Queue::create([
                 'appointment_id' => $appointment->appointment_id,
                 'patient_id' => $appointment->patient_id,
                 'doctor_user_id' => $appointment->doctor_user_id,
-                'queue_number' => $nextQueueNumber,
+                'queue_number' => $queueNumber,
                 'queue_date' => $queueDate,
                 'estimated_time' => $appointment->scheduled_start_at->format('H:i:s'),
                 'complaint' => $appointment->complaint,
@@ -113,7 +126,7 @@ class Index extends Component
 
             \DB::commit();
 
-            session()->flash('success', 'Pasien ' . $appointment->patient->name . ' berhasil di-check-in! Nomor antrian: ' . $nextQueueNumber);
+            session()->flash('success', 'Pasien ' . $appointment->patient->full_name . ' berhasil di-check-in! Nomor antrian: ' . $queueNumber);
             
             $this->dispatch('patientCheckedIn');
 

@@ -85,7 +85,7 @@
                     Reset
                 </button>
 
-                <a href="{{ route('admin.speciality.create') }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
+                <a href="{{ route('admin.specialities.create') }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
                     <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -150,7 +150,7 @@
                             </button>
 
                             <!-- Edit -->
-                            <a href="{{ route('admin.speciality.edit', $speciality->speciality_id) }}" 
+                            <a href="{{ route('admin.specialities.edit', $speciality->speciality_id) }}" 
                                class="px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded transition text-xs">
                                 ✏️ Edit
                             </a>
@@ -181,7 +181,7 @@
             </svg>
             <p class="text-gray-600 font-medium mb-2">Tidak ada data spesialisasi</p>
             <p class="text-gray-500 text-sm mb-4">Mulai dengan menambahkan spesialisasi baru</p>
-            <a href="{{ route('admin.speciality.create') }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
+            <a href="{{ route('admin.specialities.create') }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
                 <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>

@@ -151,7 +151,26 @@ class PatientController extends Controller
      */
     public function show(Patient $patient)
     {
-        return view('admin.patients.show', compact('patient'));
+        // Load appointments with related data
+        $appointments = $patient->appointments()
+            ->with(['service', 'doctor.user', 'doctor.speciality'])
+            ->orderBy('scheduled_start_at', 'desc')
+            ->get();
+
+        // Load visits (medical records) with SOAP data
+        $visits = \App\Models\Visit::where('patient_id', $patient->patient_id)
+            ->with(['doctor', 'appointment.service', 'details.service'])
+            ->orderBy('visit_at', 'desc')
+            ->get();
+
+        // Stats
+        $stats = [
+            'total_appointments' => $appointments->count(),
+            'completed_appointments' => $appointments->where('status', 'COMPLETED')->count(),
+            'total_visits' => $visits->count(),
+        ];
+
+        return view('admin.patients.show', compact('patient', 'appointments', 'visits', 'stats'));
     }
 
     /**

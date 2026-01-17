@@ -157,7 +157,11 @@ class AppointmentController extends Controller
             $service = Service::findOrFail($validated['service_id']);
             $scheduledEnd = $scheduledStart->copy()->addMinutes($service->duration_minutes ?? 30);
 
-            // Create appointment
+            // Generate queue number otomatis berdasarkan urutan booking
+            $queueNumber = Appointment::generateQueueNumber($validated['doctor_user_id'], $validated['scheduled_date']);
+            $queueDate = Carbon::parse($validated['scheduled_date'])->format('Y-m-d');
+
+            // Create appointment with queue number
             $appointment = Appointment::create([
                 'patient_id' => $validated['patient_id'],
                 'service_id' => $validated['service_id'],
@@ -168,6 +172,8 @@ class AppointmentController extends Controller
                 'notes' => $validated['notes'] ?? null,
                 'status' => 'BOOKED', // Auto-approved by admin
                 'booking_source' => 'WALK_IN', // Admin booking = WALK_IN
+                'queue_number' => $queueNumber,
+                'queue_date' => $queueDate,
             ]);
 
             DB::commit();

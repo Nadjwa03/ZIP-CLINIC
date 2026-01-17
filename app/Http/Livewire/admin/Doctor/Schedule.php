@@ -29,8 +29,8 @@ class Schedule extends Component
     // For adding new shift
     public $newShift = [
         'day' => null,
-        'start_time' => '09:00',
-        'end_time' => '17:00',
+        'start_time' => '16:00',
+        'end_time' => '21:00',
     ];
 
     public function mount($doctorId)
@@ -74,8 +74,8 @@ class Schedule extends Component
     {
         $this->schedules[$day][] = [
             'id' => null,
-            'start_time' => '09:00',
-            'end_time' => '17:00',
+            'start_time' => '16:00',
+            'end_time' => '21:00',
         ];
     }
 

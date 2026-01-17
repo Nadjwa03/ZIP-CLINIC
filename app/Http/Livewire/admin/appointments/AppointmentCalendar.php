@@ -116,14 +116,14 @@ class AppointmentCalendar extends Component
     public function generateTimeSlots()
     {
         $slots = [];
-        $start = Carbon::createFromTime(7, 0);
+        $start = Carbon::createFromTime(16, 0);
         $end = Carbon::createFromTime(21, 0);
-        
+
         while ($start->lt($end)) {
             $slots[] = $start->format('H:i');
             $start->addHour();
         }
-        
+
         return $slots;
     }
     

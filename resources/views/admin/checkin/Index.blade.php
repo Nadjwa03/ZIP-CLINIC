@@ -3,5 +3,6 @@
 @section('title', 'Check-in')
 
 @section('content')
-    @livewire('admin.checkin.index')
+    @livewire('admin.check-in.index')
 @endsection
+

@@ -38,8 +38,20 @@ class AuthController extends Controller
         // Regenerate session untuk keamanan
         $request->session()->regenerate();
 
-        // Redirect ke dashboard admin
-        return redirect()->intended(route('admin.index'));
+        // Redirect berdasarkan role (without intended to avoid wrong redirects)
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.index');
+        } elseif ($user->role === 'doctor') {
+            return redirect()->route('doctor.dashboard');
+        } elseif ($user->role === 'patient') {
+            return redirect()->route('patient.dashboard');
+        }
+
+        // Fallback: logout user dengan role tidak valid
+        Auth::logout();
+        return redirect()->route('login')->with('failed', 'Role user tidak valid.');
     }
 
     public function register(Request $request)

@@ -17,13 +17,25 @@ class Service extends Model
         'price',
         'duration_minutes',
         'is_active',
+        'is_public',
+        'category',
+        'display_order',
+        'icon',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'is_active' => 'boolean',
+        'is_public' => 'boolean',
         'duration_minutes' => 'integer',
+        'display_order' => 'integer',
     ];
+
+    // scope yang dipakai LandingController (sekarang ordered() belum ada)
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('display_order')->orderBy('service_name');
+    }
 
     /**
      * Get the speciality of this service

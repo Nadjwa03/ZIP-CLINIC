@@ -14,6 +14,19 @@ class LandingController extends Controller
      */
     public function index()
     {
+        // Redirect authenticated users to their dashboard
+        if (auth()->check()) {
+            $user = auth()->user();
+
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.index');
+            } elseif ($user->role === 'doctor') {
+                return redirect()->route('doctor.dashboard');
+            } elseif ($user->role === 'patient') {
+                return redirect()->route('patient.dashboard');
+            }
+        }
+
         // Fetch active services (for landing page section)
         $services = Service::where('is_active', true)
             ->orderBy('service_name')
