@@ -25,6 +25,12 @@ return new class extends Migration
             $table->timestamp('visit_at');
             $table->enum('status', ['IN_TREATMENT', 'DONE', 'FOLLOW_UP', 'READY_TO_BILL'])->default('IN_TREATMENT');
             
+            // ENTRY TRACKING - Siapa yang input SOAP
+            $table->unsignedBigInteger('entered_by_user_id')->nullable()->comment('User yang input SOAP (doctor/nurse)');
+            $table->enum('entry_method', ['DIRECT', 'NURSE_ASSIST'])->default('DIRECT')->comment('DIRECT=dokter input sendiri, NURSE_ASSIST=dibantu perawat');
+            
+            $table->foreign('entered_by_user_id')->references('id')->on('users')->onDelete('set null');
+
             // SOAP Format
             $table->text('subjective')->nullable();  // S - Keluhan pasien
             $table->text('objective')->nullable();   // O - Pemeriksaan fisik

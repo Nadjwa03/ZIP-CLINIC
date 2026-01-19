@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone', 20)->nullable();  // ✅ Ditambahkan di sini
             $table->timestamp('email_verified_at')->nullable();
-            $table->enum('role',['admin','doctor','patient'])->default('patient');
+            $table->enum('role',['admin','doctor','patient', 'nurse'])->default('patient');
             $table->enum('status',['verify','active','inactive']);
             $table->string('password');
             $table->rememberToken();

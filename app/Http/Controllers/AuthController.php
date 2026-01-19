@@ -45,6 +45,8 @@ class AuthController extends Controller
             return redirect()->route('admin.index');
         } elseif ($user->role === 'doctor') {
             return redirect()->route('doctor.dashboard');
+        } elseif ($user->role === 'nurse') {
+            return redirect()->route('nurse.index');
         } elseif ($user->role === 'patient') {
             return redirect()->route('patient.dashboard');
         }

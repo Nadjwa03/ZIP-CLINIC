@@ -16,6 +16,8 @@ class Visit extends Model
         'queue_id',
         'patient_id',
         'doctor_user_id',
+        'entered_by_user_id',  // User yang input SOAP
+        'entry_method',         // DIRECT atau NURSE_ASSIST
         'visit_at',
         'status',
         'subjective',
@@ -55,15 +57,23 @@ class Visit extends Model
 
     public function doctor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'doctor_user_id');
+        return $this->belongsTo(Doctor::class, 'doctor_user_id', 'doctor_user_id');
     }
 
     /**
- * Get the user account of the doctor (if needed)
- */
+     * Get the user account of the doctor (shortcut)
+     */
     public function doctorUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_user_id', 'id');
+    }
+
+    /**
+     * Get the user who entered/input this SOAP (doctor or nurse)
+     */
+    public function enteredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'entered_by_user_id', 'id');
     }
 
     public function procedures(): HasMany

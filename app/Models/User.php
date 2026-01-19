@@ -57,6 +57,14 @@ class User extends Authenticatable
         return $this->hasOne(Doctor::class, 'doctor_user_id', 'id');
     }
 
+     /**
+     * Get the nurse profile associated with this user
+     */
+    public function nurse()
+    {
+        return $this->hasOne(Nurse::class, 'nurse_user_id', 'id');
+    }
+
     /**
      * Get all patient profiles owned by this user (bisa punya banyak - keluarga)
      */
@@ -95,5 +103,13 @@ class User extends Authenticatable
     public function isPatient(): bool
     {
         return $this->role === 'patient';
+    }
+
+     /**
+     * Check if user is nurse
+     */
+    public function isNurse(): bool
+    {
+        return $this->role === 'nurse';
     }
 }

@@ -13,20 +13,7 @@ class CheckRole
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-//     public function handle(Request $request, Closure $next, ...$roles): Response
-// {
-//     $userRole = $request->user()?->role;
 
-//     if (in_array($userRole, $roles, true)) {
-//         return $next($request);
-//     }
-
-//     return match ($userRole) {
-//         'patient' => redirect()->route('pasien'),
-//         'admin', 'doctor' => redirect()->route('dashboard'),
-//         default => abort(403),
-//     };
-// }
 
 public function handle(Request $request, Closure $next, ...$roles): Response
 {

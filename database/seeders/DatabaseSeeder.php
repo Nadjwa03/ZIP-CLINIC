@@ -20,7 +20,9 @@ class DatabaseSeeder extends Seeder
     SpecialitySeeder::class,  // Add specialities first
     ServiceSeeder::class,
     DoctorSeeder::class,
+    NurseSeeder::class,       // Add nurses
     AppSettingSeeder::class,
+
 ]);
 
         

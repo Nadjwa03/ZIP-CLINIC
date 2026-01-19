@@ -31,10 +31,12 @@ class Queue extends Model
         'queue_date',
         'estimated_time',
         'status',
+        'priority',      // NORMAL, VIP, URGENT
         'complaint',
         'cancel_reason',
         'checked_in_at',    
         'called_at',
+        'called_by',     // User ID yang memanggil
         'started_at',
         'completed_at',
     ];
@@ -51,6 +53,13 @@ class Queue extends Model
     ];
 
     // ==========================================
+    // PRIORITY CONSTANTS
+    // ==========================================
+    const PRIORITY_NORMAL = 'NORMAL';
+    const PRIORITY_VIP = 'VIP';
+    const PRIORITY_URGENT = 'URGENT';
+
+    // ==========================================
     // APPENDS - Virtual Attributes
     // ==========================================
     protected $appends = [
@@ -59,6 +68,8 @@ class Queue extends Model
         'formatted_queue_number',
         'waiting_time',
         'total_duration',
+        'priority_label',
+        'priority_color',
     ];
 
     // ==========================================
@@ -95,6 +106,14 @@ class Queue extends Model
     public function visit()
     {
         return $this->hasOne(Visit::class, 'queue_id', 'queue_id');
+    }
+
+    /**
+     * User yang memanggil antrian (admin/nurse)
+     */
+    public function calledByUser()
+    {
+        return $this->belongsTo(User::class, 'called_by', 'id');
     }
 
     // ==========================================
@@ -139,6 +158,30 @@ class Queue extends Model
     public function getFormattedQueueNumberAttribute()
     {
         return str_pad($this->queue_number, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get priority label for UI
+     */
+    public function getPriorityLabelAttribute()
+    {
+        return match($this->priority) {
+            self::PRIORITY_VIP => 'VIP',
+            self::PRIORITY_URGENT => 'Darurat',
+            default => 'Normal',
+        };
+    }
+
+    /**
+     * Get priority color for UI
+     */
+    public function getPriorityColorAttribute()
+    {
+        return match($this->priority) {
+            self::PRIORITY_VIP => 'amber',
+            self::PRIORITY_URGENT => 'red',
+            default => 'gray',
+        };
     }
 
     /**

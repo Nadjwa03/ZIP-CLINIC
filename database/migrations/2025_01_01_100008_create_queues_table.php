@@ -26,21 +26,16 @@ return new class extends Migration
             // Doctor yang handle antrian
             $table->unsignedBigInteger('doctor_user_id');
             
-            // ==========================================
-            // QUEUE INFO - Sesuai ERD
-            // ==========================================
+           
+            // QUEUE INFO
             $table->date('queue_date');
             $table->unsignedSmallInteger('queue_number');
             $table->time('estimated_time')->nullable();
             
-            // ==========================================
-            // STATUS - ERD + IMPROVEMENT
-            // ==========================================
-            // ERD: WAITING, IN_TREATMENT, DONE, CANCELLED
-            // IMPROVEMENT: Tambah CALLED, SKIPPED untuk flow yang lebih detail
+
             $table->enum('status', [
-                'WAITING',      // Menunggu dipanggil
-                'CALLED',       // ✨ SARAN: Sudah dipanggil tapi belum masuk ruangan
+                'WAITING',      
+                'CALLED',       
                 'IN_TREATMENT',
                 'DONE',         
                 'CANCELLED',    
@@ -49,11 +44,15 @@ return new class extends Migration
             
             $table->text('complaint')->nullable();
             $table->text('cancel_reason')->nullable();
+
+            // PRIORITY - Untuk VIP/Urgent patients
+            $table->enum('priority', ['NORMAL', 'VIP', 'URGENT'])->default('NORMAL'); 
             
             // ==========================================
             // TIMESTAMPS - IMPROVEMENT untuk tracking detail
             // ==========================================
             $table->timestamp('called_at')->nullable()->comment('Waktu dipanggil');
+            $table->unsignedBigInteger('called_by')->nullable()->comment('User yang memanggil (admin/nurse)');
             
             // ✨ SARAN IMPROVEMENT: Tambah tracking waktu lebih detail
             $table->timestamp('checked_in_at')->nullable()->comment('Waktu pasien check-in');

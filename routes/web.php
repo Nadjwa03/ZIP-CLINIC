@@ -332,48 +332,38 @@ Route::prefix('patients')->name('patients.')->group(function () {
     Route::delete('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('destroy');
 });
 
-    // ========================================
-    // PATIENT MANAGEMENT (ADMIN) ← ADD THIS SECTION
-    // ========================================
-
-
-//     Route::prefix('patients')->name('patients.')->group(function () {
-//         // ========================================
-//         // CHECK-IN (Livewire)
-//         // ========================================
-//         Route::get('/check-in', function () {
-//             return view('admin.checkin.index');
-//         })->name('checkin.index');
-
-//                 // ========================================
-//         // PATIENT APPOINTMENT ROUTES
-//         // ========================================
-//         // Tambahkan di dalam Route::prefix('pasien')->group()
-//         Route::prefix('appointments')->name('appointments.')->group(function () {
-//             Route::get('/', [App\Http\Controllers\Patient\AppointmentController::class, 'index'])->name('index');
-//             Route::get('/create', [App\Http\Controllers\Patient\AppointmentController::class, 'create'])->name('create');
-//             Route::post('/', [App\Http\Controllers\Patient\AppointmentController::class, 'store'])->name('store');
-//             Route::get('/{appointment}', [App\Http\Controllers\Patient\AppointmentController::class, 'show'])->name('show');
-//             Route::delete('/{appointment}/cancel', [App\Http\Controllers\Patient\AppointmentController::class, 'cancel'])->name('cancel');
-            
-//             // AJAX Routes
-//             Route::get('/available-slots', [App\Http\Controllers\Patient\AppointmentController::class, 'getSlots'])->name('get-slots');
-//         });
-//         // ========================================
-//         // QUEUE MANAGEMENT (Livewire)
-//         // ========================================
-//         Route::get('/queue', function () {
-//             return view('admin.queue.index');
-//         })->name('queue.index');
-//         Route::get('/', [App\Http\Controllers\Admin\PatientController::class, 'index'])->name('index');
-//         Route::get('/create', [App\Http\Controllers\Admin\PatientController::class, 'create'])->name('create');  // ← NEW
-//         Route::post('/', [App\Http\Controllers\Admin\PatientController::class, 'store'])->name('store');  // ← NEW
-//         Route::get('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'show'])->name('show');
-//         Route::get('/{patient}/edit', [App\Http\Controllers\Admin\PatientController::class, 'edit'])->name('edit');
-//         Route::put('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'update'])->name('update');
-//         Route::patch('/{patient}/toggle-status', [App\Http\Controllers\Admin\PatientController::class, 'toggleStatus'])->name('toggle-status');
-//         Route::post('/{patient}/regenerate-code', [App\Http\Controllers\Admin\PatientController::class, 'regenerateSecretCode'])->name('regenerate-code');
-//         Route::delete('/{patient}', [App\Http\Controllers\Admin\PatientController::class, 'destroy'])->name('destroy');
-// });
     Route::get('/pasien', fn () => 'halaman pasien (admin)')->name('pasien');
 });
+
+// ========================================
+// NURSE PANEL ROUTES
+// ========================================
+Route::prefix('nurse')
+    ->name('nurse.')
+    ->middleware(['auth', 'check_role:nurse,admin']) // Admin juga bisa akses untuk testing
+    ->group(function () {
+        
+        // Dashboard - Treatment Room
+        Route::get('/', function () {
+            return view('nurse.dashboard');
+        })->name('index');
+
+        
+        // Queue Management
+        Route::get('/queue', function () {
+            return view('nurse.queue.index');
+        })->name('queue.index');
+
+        // SOAP Input (via Livewire component)
+        Route::get('/visit/{visit}/soap', function ($visit) {
+            return view('nurse.soap.edit', ['visitId' => $visit]);
+        })->name('soap.edit');
+
+        // Logout
+        Route::get('/logout', function () {
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            return redirect()->route('login');
+        })->name('logout');
+    });
